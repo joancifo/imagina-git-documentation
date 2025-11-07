@@ -1,4 +1,4 @@
-Guía de Git y GitLab Self-Managed
+# Guía de Git y GitLab Self-Managed
 
 Esta guía proporciona una introducción completa a Git y GitLab Self-Managed, cubriendo desde los conceptos fundamentales hasta el trabajo colaborativo en proyectos de software. Aprenderás a gestionar versiones de código, trabajar con ramas, resolver conflictos y utilizar GitLab como plataforma de alojamiento y colaboración.
 

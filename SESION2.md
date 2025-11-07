@@ -4,7 +4,7 @@
 
 En proyectos reales, cada desarrollador crea ramas de trabajo (por ejemplo `feature-login`, `bugfix-xyz`) desde `main`. Trabajan allí, confirman y luego integran su rama de vuelta. Una manera común es realizar Pull Requests o Merge Requests en GitLab: cada cambio es revisado y luego fusionado (merge) a `main`.
 
-Se puede optar por fusiones con commit de merge o fusiones fast-forward sin commit adicional. Atlassian explica que merge normal genera un commit de fusión mientras que la fusión mediante rebase reescribe el historial para mantenerlo lineal[15]. Por ejemplo:
+Se puede optar por fusiones con commit de merge o fusiones fast-forward sin commit adicional. Atlassian explica que merge normal genera un commit de fusión mientras que la fusión mediante rebase reescribe el historial para mantenerlo lineal. Por ejemplo:
 
 ```bash
 git merge --no-ff  # fuerza un merge explícito
@@ -13,14 +13,14 @@ git merge --squash # aplasta varios commits en uno
 
 ## Resolución de conflictos
 
-Cuando dos ramas modifican un mismo archivo incompatible, al fusionar Git detendrá el merge y marcará conflictos. En ese caso, los archivos afectados incluirán indicadores especiales como `<<<<<<< HEAD`, `=======`, `>>>>>>> rama-secundaria`[16]. Debes editar el archivo para resolver el conflicto, dejando solo el contenido correcto y borrando esos marcadores. Luego haces:
+Cuando dos ramas modifican un mismo archivo incompatible, al fusionar Git detendrá el merge y marcará conflictos. En ese caso, los archivos afectados incluirán indicadores especiales como `<<<<<<< HEAD`, `=======`, `>>>>>>> rama-secundaria`. Debes editar el archivo para resolver el conflicto, dejando solo el contenido correcto y borrando esos marcadores. Luego haces:
 
 ```bash
 git add <archivo-resuelto>
 git commit
 ```
 
-Con lo cual se crea el commit de merge final[17]. Por ejemplo, al intentar:
+Con lo cual se crea el commit de merge final. Por ejemplo, al intentar:
 
 ```bash
 git checkout main

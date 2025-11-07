@@ -2,17 +2,17 @@
 
 ## ¿Qué es Git?
 
-Git es un sistema de control de versiones distribuido que registra cambios en archivos y coordina el trabajo de varias personas en proyectos de software[1]. Su función más básica es permitir que un equipo añada y fusione código simultáneamente, lo que hace el desarrollo más eficiente y escalable[2]. Git permite revertir cambios, crear nuevas ramas para características, resolver conflictos de fusión, y mucho más[3].
+Git es un sistema de control de versiones distribuido que registra cambios en archivos y coordina el trabajo de varias personas en proyectos de software. Su función más básica es permitir que un equipo añada y fusione código simultáneamente, lo que hace el desarrollo más eficiente y escalable. Git permite revertir cambios, crear nuevas ramas para características, resolver conflictos de fusión, y mucho más.
 
 ## ¿Qué es GitLab Self-Managed?
 
-GitLab es una plataforma web de gestión de repositorios Git que incluye control de versiones, CI/CD y gestión de proyectos. En la modalidad Self-Managed, GitLab se instala en servidores propios (on-premise), lo que da control total al equipo sobre la instancia. Es análogo a GitHub o Bitbucket pero bajo tu propia administración[4].
+GitLab es una plataforma web de gestión de repositorios Git que incluye control de versiones, CI/CD y gestión de proyectos. En la modalidad Self-Managed, GitLab se instala en servidores propios (on-premise), lo que da control total al equipo sobre la instancia. Es análogo a GitHub o Bitbucket pero bajo tu propia administración.
 
-> **Regla de oro:** Git es la herramienta de control de versiones, y plataformas como GitLab son servicios donde alojamos los repositorios[4].
+> **Regla de oro:** Git es la herramienta de control de versiones, y plataformas como GitLab son servicios donde alojamos los repositorios.
 
 ## Instalación y configuración inicial
 
-Después de instalar Git, configura tu identidad global para que Git firme los commits con tu nombre y email[5]. Por ejemplo:
+Después de instalar Git, configura tu identidad global para que Git firme los commits con tu nombre y email. Por ejemplo:
 
 ```bash
 git config --global user.name "Tu Nombre"
@@ -25,11 +25,11 @@ Esto crea un archivo `~/.gitconfig`. También puedes establecer tu editor por de
 git config --global core.editor vim
 ```
 
-Estos son pasos típicos iniciales[5].
+Estos son pasos típicos iniciales.
 
 ## Primer repositorio local
 
-Crea un directorio para tu proyecto y conviértelo en repositorio Git con `git init`[6]:
+Crea un directorio para tu proyecto y conviértelo en repositorio Git con `git init`:
 
 ```bash
 mkdir mi-proyecto
@@ -43,7 +43,7 @@ Salida esperada:
 Initialized empty Git repository in /ruta/a/mi-proyecto/.git/
 ```
 
-El comando `git init` crea el subdirectorio oculto `.git` donde Git guarda todo el historial[6]. Ahora tu código será rastreado. Puedes verificar con `git status`:
+El comando `git init` crea el subdirectorio oculto `.git` donde Git guarda todo el historial. Ahora tu código será rastreado. Puedes verificar con `git status`:
 
 ```bash
 git status
@@ -78,7 +78,7 @@ Changes to be committed:
   new file:   README.md
 ```
 
-El comando `git add <archivo>` prepara cambios nuevos/modificados para confirmar[7]. Luego realiza la confirmación con un mensaje:
+El comando `git add <archivo>` prepara cambios nuevos/modificados para confirmar. Luego realiza la confirmación con un mensaje:
 
 ```bash
 git commit -m "Primera versión de README"
@@ -92,7 +92,7 @@ Salida esperada:
  create mode 100644 README.md
 ```
 
-`git commit -m "mensaje"` crea un nuevo commit en la rama actual con los cambios preparados[8]. El mensaje explica el propósito de la versión. Al confirmar, Git genera un ID único (SHA) para el commit.
+`git commit -m "mensaje"` crea un nuevo commit en la rama actual con los cambios preparados. El mensaje explica el propósito de la versión. Al confirmar, Git genera un ID único (SHA) para el commit.
 
 ## Explorando el historial
 
@@ -108,7 +108,7 @@ Salida esperada:
 abc1234 (HEAD -> main) Primera versión de README
 ```
 
-`git log` lista las confirmaciones (cada una con ID y mensaje)[9]. Así puedes navegar la historia del proyecto.
+`git log` lista las confirmaciones (cada una con ID y mensaje). Así puedes navegar la historia del proyecto.
 
 ## Trabajando con ramas
 
@@ -118,7 +118,7 @@ Las ramas permiten desarrollar características aisladas. Para crear una rama nu
 git branch desarrollo
 ```
 
-Esto crea una rama llamada `desarrollo`[10]. Para cambiarte a ella:
+Esto crea una rama llamada `desarrollo`. Para cambiarte a ella:
 
 ```bash
 git checkout desarrollo
@@ -138,7 +138,7 @@ git checkout -b desarrollo
 git switch -c desarrollo
 ```
 
-(`checkout -b` equivale a `git branch desarrollo && git checkout desarrollo`)[11]. Listar ramas te muestra en cuál estás (*)[12]:
+(`checkout -b` equivale a `git branch desarrollo && git checkout desarrollo`). Listar ramas te muestra en cuál estás (*):
 
 ```bash
 git branch
@@ -192,7 +192,7 @@ Esto asigna la URL remota al nombre `origin`. Después, envía tus commits local
 git push -u origin main
 ```
 
-El comando `git push` transfiere los commits locales a la rama `main` en el servidor remoto[13]. La opción `-u` establece la rama por defecto para futuros pushes/pulls. De ahora en adelante, basta con `git push` o `git pull` para sincronizar.
+El comando `git push` transfiere los commits locales a la rama `main` en el servidor remoto. La opción `-u` establece la rama por defecto para futuros pushes/pulls. De ahora en adelante, basta con `git push` o `git pull` para sincronizar.
 
 ## Ejercicios prácticos (Sesión 1)
 
@@ -206,6 +206,5 @@ El comando `git push` transfiere los commits locales a la rama `main` en el serv
 Sigue siempre las buenas prácticas:
 
 - **Regla 1:** un repositorio Git por proyecto
-- **Regla 2:** una rama nueva por cada característica[14]
-
+- **Regla 2:** una rama nueva por cada característica
 Así mantienes el desarrollo organizado.

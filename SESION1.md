@@ -4,6 +4,52 @@
 
 Git es un sistema de control de versiones distribuido que registra cambios en archivos y coordina el trabajo de varias personas en proyectos de software. Su función más básica es permitir que un equipo añada y fusione código simultáneamente, lo que hace el desarrollo más eficiente y escalable. Git permite revertir cambios, crear nuevas ramas para características, resolver conflictos de fusión, y mucho más.
 
+## Diferencias entre Git y SVN
+
+Git y SVN (Subversion) son sistemas de control de versiones, pero tienen arquitecturas y filosofías muy diferentes:
+
+### Arquitectura
+
+- **Git (distribuido):** Cada desarrollador tiene una copia completa del repositorio con todo el historial. Puedes trabajar sin conexión y sincronizar después.
+- **SVN (centralizado):** Existe un único servidor central que contiene el repositorio. Los desarrolladores trabajan con copias locales (working copies) pero necesitan conexión al servidor para muchas operaciones.
+
+### Operaciones y rendimiento
+
+- **Git:** Las operaciones son locales y muy rápidas (commits, ramas, historial). Solo necesitas conexión para `push` y `pull`.
+- **SVN:** Muchas operaciones requieren comunicación con el servidor, lo que puede ser más lento dependiendo de la red.
+
+### Ramas y fusiones
+
+- **Git:** Crear y cambiar de rama es instantáneo. Las fusiones son más simples y Git está diseñado para manejar múltiples ramas eficientemente.
+- **SVN:** Las ramas se crean copiando directorios en el servidor. Las fusiones pueden ser más complejas y propensas a conflictos.
+
+### Historial y versionado
+
+- **Git:** Guarda snapshots completos del proyecto en cada commit. El historial es inmutable y se basa en hashes SHA-1.
+- **SVN:** Guarda diferencias (deltas) entre versiones. El historial puede ser modificado con herramientas administrativas.
+
+### Flujo de trabajo
+
+- **Git:** Flujo típico: `add` → `commit` (local) → `push` (remoto). Los commits locales permiten revisar antes de compartir.
+- **SVN:** Flujo típico: `add` → `commit` (directo al servidor). Los cambios se comparten inmediatamente.
+
+### Ventajas de Git
+
+- Trabajo offline completo
+- Ramas y fusiones más eficientes
+- Mejor para proyectos grandes y distribuidos
+- Historial completo en cada copia local
+- Mejor rendimiento en operaciones locales
+
+### Ventajas de SVN
+
+- Modelo más simple para equipos pequeños
+- Control de acceso más directo (centralizado)
+- Mejor integración con algunos sistemas legacy
+- Curva de aprendizaje más suave para usuarios básicos
+
+> **Nota:** Git se ha convertido en el estándar de la industria, especialmente en desarrollo de software moderno, mientras que SVN sigue siendo usado en algunos entornos corporativos tradicionales.
+
 ## ¿Qué es GitLab Self-Managed?
 
 GitLab es una plataforma web de gestión de repositorios Git que incluye control de versiones, CI/CD y gestión de proyectos. En la modalidad Self-Managed, GitLab se instala en servidores propios (on-premise), lo que da control total al equipo sobre la instancia. Es análogo a GitHub o Bitbucket pero bajo tu propia administración.

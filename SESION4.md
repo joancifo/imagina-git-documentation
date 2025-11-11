@@ -177,6 +177,248 @@ git rebase --abort            # Cancelar rebase en progreso
 git rebase --continue         # Continuar rebase tras resolver conflictos
 ```
 
+**Las tres estrategias principales de integración:**
+
+Git ofrece tres formas principales de integrar cambios de una rama a otra. Cada una tiene sus ventajas y casos de uso específicos:
+
+#### 1. Fast-forward merge (por defecto)
+
+**Cuándo ocurre:** Cuando la rama destino (ej. `main`) no tiene commits nuevos desde que se creó la rama feature.
+
+**Cómo funciona:** Git simplemente mueve el puntero de `main` hacia adelante hasta el último commit de la feature, sin crear un commit de merge.
+
+**Visualización:**
+
+```
+Antes:
+main:    A---B
+              \
+feature:       C---D---E
+
+Después (fast-forward):
+main:    A---B---C---D---E
+```
+
+**Comando:**
+
+```bash
+git checkout main
+git merge feature          # Fast-forward automático si es posible
+```
+
+**Ventajas:**
+- Historial lineal y limpio
+- No crea commits adicionales
+- Simple y directo
+
+**Desventajas:**
+- Pierdes la información de que fue una rama separada
+- No queda claro en el historial que hubo trabajo en paralelo
+
+**Forzar fast-forward (si no es posible por defecto):**
+
+```bash
+# Si hay commits nuevos en main, fast-forward no es posible
+# Pero puedes hacer rebase primero y luego merge
+git checkout feature
+git rebase main
+git checkout main
+git merge feature          # Ahora sí será fast-forward
+```
+
+#### 2. Merge commit (merge normal con --no-ff)
+
+**Cuándo usar:** Cuando quieres preservar la historia de que hubo trabajo en paralelo en una rama separada.
+
+**Cómo funciona:** Git crea un commit de merge que combina ambas historias, manteniendo la estructura de ramas en el historial.
+
+**Visualización:**
+
+```
+Antes:
+main:    A---B---F
+              \
+feature:       C---D---E
+
+Después (merge commit):
+main:    A---B---F-------M
+              \         /
+feature:       C---D---E
+```
+
+**Comando:**
+
+```bash
+git checkout main
+git merge --no-ff feature   # Fuerza creación de commit de merge
+```
+
+**O configurar por defecto:**
+
+```bash
+# Configurar para que siempre cree merge commits
+git config merge.ff false
+git merge feature            # Ahora siempre crea merge commit
+```
+
+**Ventajas:**
+- Preserva la historia completa de ramas
+- Fácil ver qué commits pertenecen a qué feature
+- Útil para proyectos con muchas ramas paralelas
+
+**Desventajas:**
+- Historial más complejo con muchos commits de merge
+- Puede ser difícil seguir el flujo lineal
+
+**Ejemplo práctico:**
+
+```bash
+# Situación: main tiene commits nuevos, feature también
+git checkout main
+git pull origin main         # Actualizar main
+
+# Opción A: Merge normal (crea merge commit)
+git merge --no-ff feature
+
+# Resultado: Historial muestra claramente la rama feature
+```
+
+#### 3. Rebase (reorganizar historial)
+
+**Cuándo usar:** Cuando quieres un historial completamente lineal, como si el trabajo se hubiera hecho directamente en `main`.
+
+**Cómo funciona:** Git toma los commits de la feature y los "re-aplica" uno por uno sobre la punta de `main`, creando nuevos commits con nuevos hashes.
+
+**Visualización:**
+
+```
+Antes:
+main:    A---B---F
+              \
+feature:       C---D---E
+
+Después (rebase):
+main:    A---B---F---C'---D'---E'
+              \
+feature:       C---D---E (original, ya no se usa)
+```
+
+**Comando:**
+
+```bash
+# Opción 1: Rebase manual
+git checkout feature
+git rebase main              # Reaplicar commits sobre main
+git checkout main
+git merge feature            # Fast-forward (ahora es posible)
+
+# Opción 2: Configurar pull para usar rebase
+git config pull.rebase true
+git pull origin main         # Usa rebase en lugar de merge
+```
+
+**Ventajas:**
+- Historial completamente lineal y fácil de seguir
+- Facilita la lectura del historial
+- Evita commits de merge innecesarios
+
+**Desventajas:**
+- Reescribe el historial (cambia hashes de commits)
+- Puede ser confuso si otros ya tienen la rama
+- Requiere force push si la rama ya está en remoto
+
+**⚠️ Importante:** Solo hacer rebase de commits que aún no se han compartido (no hacer push). Si ya hiciste push, necesitarás `--force-with-lease`.
+
+**Ejemplo práctico:**
+
+```bash
+# Situación: Trabajaste en feature, main avanzó
+git checkout feature
+git rebase main              # Reaplicar tus commits sobre main actualizado
+
+# Si hay conflictos durante rebase:
+# 1. Resolver conflictos en cada commit
+# 2. git add <archivos-resueltos>
+# 3. git rebase --continue
+
+# Una vez completado el rebase:
+git checkout main
+git merge feature            # Fast-forward (historial lineal)
+```
+
+#### Comparación de las tres estrategias
+
+| Aspecto | Fast-forward | Merge commit | Rebase |
+|---------|--------------|--------------|--------|
+| **Historial** | Lineal | Ramificado | Lineal |
+| **Preserva ramas** | No | Sí | No |
+| **Commits adicionales** | No | Sí (merge commit) | No |
+| **Reescribe historial** | No | No | Sí |
+| **Complejidad** | Baja | Media | Media-Alta |
+| **Ideal para** | Features simples | Proyectos grandes | Historial limpio |
+
+#### Configuración recomendada
+
+**Para proyectos pequeños/medianos (historial limpio):**
+
+```bash
+# Usar rebase por defecto en pull
+git config pull.rebase true
+
+# O usar merge con fast-forward cuando sea posible
+git config merge.ff only     # Solo permite fast-forward, falla si no es posible
+```
+
+**Para proyectos grandes (preservar historia):**
+
+```bash
+# Siempre crear merge commits
+git config merge.ff false
+
+# O permitir fast-forward pero preferir merge commits
+# (comportamiento por defecto de Git)
+```
+
+**Configuración híbrida (recomendada):**
+
+```bash
+# Pull usa rebase (mantiene historial local limpio)
+git config pull.rebase true
+
+# Merge manual siempre crea merge commit (preserva historia de features)
+git config merge.ff false
+
+# Al hacer pull: rebase (historial limpio)
+# Al hacer merge manual: merge commit (historia preservada)
+```
+
+#### Ejemplo completo: Comparando las tres opciones
+
+```bash
+# Situación inicial
+git checkout -b feature-login
+# ... hacer 3 commits en feature-login ...
+# Mientras tanto, main tiene 2 commits nuevos
+
+# OPCIÓN 1: Fast-forward (solo si main no avanzó)
+git checkout main
+git merge feature-login      # Fast-forward si es posible
+
+# OPCIÓN 2: Merge commit (preserva historia)
+git checkout main
+git merge --no-ff feature-login
+# Crea: A---B---F-------M
+#              \       /
+#               C---D---E
+
+# OPCIÓN 3: Rebase (historial lineal)
+git checkout feature-login
+git rebase main              # Reaplica C, D, E sobre F
+git checkout main
+git merge feature-login      # Fast-forward
+# Resultado: A---B---F---C'---D'---E' (lineal)
+```
+
 **Resolución de conflictos:**
 
 Cuando Git no puede fusionar automáticamente, marca los conflictos en los archivos:

@@ -14,20 +14,33 @@
    - 2.3. Gestión de cambios temporales (stash)
    - 2.4. Submódulos
 
-3. [Ejercicios prácticos avanzados](#3-ejercicios-prácticos-avanzados) (90 minutos)
-   - 3.1. Ejercicio 1: Recuperación de commits perdidos (20 minutos)
-   - 3.2. Ejercicio 2: Reorganización completa de historial (25 minutos)
-   - 3.3. Ejercicio 3: Resolución de conflictos complejos (20 minutos)
-   - 3.4. Ejercicio 4: Flujo colaborativo completo (25 minutos)
+3. [Técnicas avanzadas de Git](#3-técnicas-avanzadas-de-git) (45 minutos)
+   - 3.1. Cherry-pick: Aplicar commits selectivos
+   - 3.2. Git bisect: Encontrar commits problemáticos
+   - 3.3. Git worktree: Múltiples working directories
+   - 3.4. Git hooks: Automatización de tareas
+   - 3.5. Git rerere: Reutilizar resoluciones de conflictos
+   - 3.6. Git blame y annotate: Rastrear autoría
+   - 3.7. Configuraciones avanzadas y aliases
+   - 3.8. Git attributes y filtros personalizados
+   - 3.9. Git LFS: Archivos grandes
+   - 3.10. Otras herramientas avanzadas
 
-4. [Casos de uso reales](#4-casos-de-uso-reales) (15 minutos)
-   - 4.1. Escenario: Migración de feature branch
-   - 4.2. Escenario: Limpieza de historial antes de merge
-   - 4.3. Escenario: Recuperación tras error crítico
+4. [Ejercicios prácticos avanzados](#4-ejercicios-prácticos-avanzados) (115 minutos)
+   - 4.1. Ejercicio 1: Recuperación de commits perdidos (20 minutos)
+   - 4.2. Ejercicio 2: Reorganización completa de historial (25 minutos)
+   - 4.3. Ejercicio 3: Resolución de conflictos complejos (20 minutos)
+   - 4.4. Ejercicio 4: Flujo colaborativo completo (25 minutos)
+   - 4.5. Ejercicio 5: Cherry-pick y bisect (25 minutos)
 
-5. [Checklist de buenas prácticas](#5-checklist-de-buenas-prácticas) (10 minutos)
+5. [Casos de uso reales](#5-casos-de-uso-reales) (15 minutos)
+   - 5.1. Escenario: Migración de feature branch
+   - 5.2. Escenario: Limpieza de historial antes de merge
+   - 5.3. Escenario: Recuperación tras error crítico
 
-**Duración total estimada: 2 horas 30 minutos**
+6. [Checklist de buenas prácticas](#6-checklist-de-buenas-prácticas) (10 minutos)
+
+**Duración total estimada: 3 horas 40 minutos**
 
 ---
 
@@ -454,9 +467,773 @@ git commit -m "Eliminar submódulo"
 
 ---
 
-## 3. Ejercicios prácticos avanzados
+## 3. Técnicas avanzadas de Git
 
-### 3.1. Ejercicio 1: Recuperación de commits perdidos (20 minutos)
+### 3.1. Cherry-pick: Aplicar commits selectivos
+
+**Concepto:**
+
+`git cherry-pick` permite aplicar commits específicos de una rama a otra, sin fusionar toda la rama. Es útil cuando solo necesitas algunos commits de una feature branch en otra rama.
+
+**Uso básico:**
+
+```bash
+# Aplicar un commit específico a la rama actual
+git cherry-pick <hash-commit>
+
+# Aplicar múltiples commits
+git cherry-pick <hash1> <hash2> <hash3>
+
+# Aplicar un rango de commits
+git cherry-pick <hash-inicio>..<hash-fin>    # No incluye hash-inicio
+git cherry-pick <hash-inicio>^..<hash-fin>   # Incluye hash-inicio
+```
+
+**Ejemplo práctico:**
+
+```bash
+# Situación: Tienes un bugfix en feature-A que necesitas en main
+git checkout main
+git cherry-pick abc1234        # Aplicar solo el commit del bugfix
+
+# Si hay conflictos, resolverlos y continuar
+git cherry-pick --continue
+
+# O abortar si cambias de opinión
+git cherry-pick --abort
+```
+
+**Opciones útiles:**
+
+```bash
+# Cherry-pick sin hacer commit automático (útil para modificar)
+git cherry-pick -n <hash>      # -n o --no-commit
+git cherry-pick --no-commit <hash>
+
+# Editar el mensaje del commit
+git cherry-pick -e <hash>      # -e o --edit
+
+# Aplicar cambios pero mantener el autor original
+git cherry-pick -x <hash>      # Añade "cherry picked from commit..." al mensaje
+
+# Aplicar cambios sin commit (solo cambios en working directory)
+git cherry-pick -n <hash>
+```
+
+**Casos de uso:**
+
+- Portar un bugfix de una rama a otra sin fusionar toda la feature
+- Aplicar commits específicos de una rama experimental
+- Recuperar commits perdidos de otra rama
+- Aplicar hotfixes a múltiples ramas de release
+
+**⚠️ Consideraciones:**
+
+- Cherry-pick crea nuevos commits (nuevos hashes) aunque el contenido sea igual
+- Puede causar commits duplicados si luego fusionas la rama original
+- Resolver conflictos puede ser necesario si el contexto cambió
+
+### 3.2. Git bisect: Encontrar commits problemáticos
+
+**Concepto:**
+
+`git bisect` es una herramienta de búsqueda binaria que ayuda a encontrar el commit que introdujo un bug. Git te guía a través del historial, probando commits hasta encontrar el problemático.
+
+**Uso básico:**
+
+```bash
+# Iniciar sesión de bisect
+git bisect start
+
+# Marcar el commit actual como "malo" (tiene el bug)
+git bisect bad                 # O git bisect bad <hash>
+
+# Marcar un commit anterior como "bueno" (sin el bug)
+git bisect good <hash>         # O git bisect good HEAD~10
+
+# Git te llevará a un commit intermedio
+# Probar el código y marcar como good o bad
+git bisect good                # Si este commit está bien
+git bisect bad                 # Si este commit tiene el bug
+
+# Continuar hasta encontrar el commit problemático
+# Git mostrará el hash del commit culpable
+
+# Finalizar bisect
+git bisect reset               # Volver al estado inicial
+```
+
+**Ejemplo completo:**
+
+```bash
+# Situación: El código funciona en v1.0 pero no en HEAD
+git bisect start
+git bisect bad                 # HEAD tiene el bug
+git bisect good v1.0           # v1.0 funciona bien
+
+# Git te lleva a un commit intermedio
+# Ejecutar tests o probar manualmente
+./run-tests.sh
+
+# Si los tests fallan:
+git bisect bad
+
+# Si los tests pasan:
+git bisect good
+
+# Repetir hasta que Git identifique el commit problemático
+# Salida: "abc1234 is the first bad commit"
+
+# Ver detalles del commit problemático
+git show abc1234
+
+# Finalizar
+git bisect reset
+```
+
+**Automatización con scripts:**
+
+```bash
+# Crear script de prueba (test-bug.sh)
+#!/bin/bash
+./run-tests.sh && exit 0 || exit 1
+
+# Ejecutar bisect automáticamente
+git bisect start HEAD v1.0
+git bisect run ./test-bug.sh
+
+# Git ejecutará el script en cada commit y marcará automáticamente
+```
+
+**Comandos adicionales:**
+
+```bash
+# Ver estado actual del bisect
+git bisect log                 # Ver historial de la sesión
+
+# Saltar un commit (si no se puede probar)
+git bisect skip
+
+# Visualizar el rango actual
+git bisect visualize          # Abre gitk o herramienta visual
+```
+
+### 3.3. Git worktree: Múltiples working directories
+
+**Concepto:**
+
+`git worktree` permite tener múltiples directorios de trabajo (working trees) del mismo repositorio. Cada worktree tiene su propia rama activa, útil para trabajar en múltiples features simultáneamente.
+
+**Uso básico:**
+
+```bash
+# Crear nuevo worktree
+git worktree add <ruta> <rama>     # Crear worktree en ruta con rama específica
+git worktree add ../proyecto-feature feature-login
+
+# Crear worktree con nueva rama
+git worktree add -b nueva-rama <ruta>
+git worktree add -b hotfix ../proyecto-hotfix
+
+# Listar worktrees
+git worktree list
+
+# Eliminar worktree
+git worktree remove <ruta>
+git worktree remove ../proyecto-feature
+
+# Eliminar worktree y su directorio
+git worktree remove --force <ruta>
+```
+
+**Ejemplo práctico:**
+
+```bash
+# Situación: Necesitas trabajar en main y en una feature simultáneamente
+cd /ruta/proyecto
+
+# Worktree principal (main)
+git checkout main
+
+# Crear worktree para feature
+git worktree add ../proyecto-feature-login feature-login
+
+# Ahora puedes trabajar en ambos:
+# - /ruta/proyecto (main)
+# - /ruta/proyecto-feature-login (feature-login)
+
+# Cada uno tiene su propio .git (comparten el mismo repositorio)
+# Puedes hacer commits, push, pull independientemente
+
+# Cuando termines
+git worktree remove ../proyecto-feature-login
+```
+
+**Ventajas:**
+
+- No necesitas clonar múltiples veces el repositorio
+- Puedes tener múltiples ramas "activas" simultáneamente
+- Útil para comparar versiones o hacer builds en paralelo
+- Comparten el mismo repositorio Git (ahorro de espacio)
+
+**Limitaciones:**
+
+- No puedes tener el mismo commit en múltiples worktrees
+- Algunas operaciones afectan a todos los worktrees (como `git gc`)
+
+### 3.4. Git hooks: Automatización de tareas
+
+**Concepto:**
+
+Los hooks son scripts que Git ejecuta automáticamente en eventos específicos (pre-commit, post-commit, pre-push, etc.). Permiten automatizar validaciones, tests, formateo, etc.
+
+**Ubicación:**
+
+Los hooks se encuentran en `.git/hooks/` del repositorio. Git incluye ejemplos (con extensión `.sample`) que puedes renombrar y editar.
+
+**Hooks del lado del cliente (local):**
+
+```bash
+# Pre-commit: Antes de crear un commit
+.git/hooks/pre-commit
+# Útil para: Linters, formateo, tests rápidos
+
+# Prepare-commit-msg: Antes de abrir el editor de mensaje
+.git/hooks/prepare-commit-msg
+# Útil para: Generar mensajes automáticos, añadir información
+
+# Commit-msg: Después de escribir el mensaje
+.git/hooks/commit-msg
+# Útil para: Validar formato de mensajes (conventional commits)
+
+# Post-commit: Después de crear commit
+.git/hooks/post-commit
+# Útil para: Notificaciones, integraciones
+
+# Pre-push: Antes de hacer push
+.git/hooks/pre-push
+# Útil para: Ejecutar tests completos, validaciones
+```
+
+**Ejemplo: Pre-commit hook para Python**
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Ejecutar linter
+if ! flake8 --exclude=.git,__pycache__ .; then
+    echo "❌ Flake8 encontró errores. Commit abortado."
+    exit 1
+fi
+
+# Ejecutar tests rápidos
+if ! python -m pytest tests/unit -q; then
+    echo "❌ Tests fallaron. Commit abortado."
+    exit 1
+fi
+
+echo "✅ Pre-commit checks pasaron"
+exit 0
+```
+
+**Ejemplo: Commit-msg hook para validar formato**
+
+```bash
+#!/bin/bash
+# .git/hooks/commit-msg
+
+commit_msg=$(cat "$1")
+
+# Validar que el mensaje sigue conventional commits
+if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{10,}"; then
+    echo "❌ El mensaje debe seguir el formato: tipo(scope): descripción"
+    echo "Ejemplo: feat(auth): añadir login con OAuth"
+    exit 1
+fi
+
+exit 0
+```
+
+**Hooks del lado del servidor (GitLab):**
+
+En GitLab, los hooks del servidor se configuran en el servidor GitLab, no en el repositorio local. Se ejecutan en eventos como `pre-receive`, `update`, `post-receive`.
+
+**Habilitar hooks:**
+
+```bash
+# Los hooks deben ser ejecutables
+chmod +x .git/hooks/pre-commit
+
+# Git ejecutará automáticamente los hooks en los eventos correspondientes
+```
+
+**Herramientas para gestionar hooks:**
+
+- **Husky** (Node.js): Facilita gestión de hooks en proyectos JavaScript
+- **pre-commit** (Python): Framework para gestionar hooks multi-lenguaje
+- **Git hooks manager**: Herramientas para versionar hooks en el repositorio
+
+### 3.5. Git rerere: Reutilizar resoluciones de conflictos
+
+**Concepto:**
+
+`rerere` (Reuse Recorded Resolution) guarda cómo resolviste conflictos anteriormente y los reutiliza automáticamente si el mismo conflicto aparece de nuevo. Muy útil en rebases repetitivos o cuando actualizas feature branches frecuentemente.
+
+**Habilitar rerere:**
+
+```bash
+# Habilitar globalmente
+git config --global rerere.enabled true
+
+# Habilitar solo en este repositorio
+git config rerere.enabled true
+```
+
+**Cómo funciona:**
+
+1. Resuelves un conflicto manualmente
+2. Git guarda la resolución
+3. Si el mismo conflicto aparece de nuevo, Git lo resuelve automáticamente
+
+**Uso práctico:**
+
+```bash
+# Situación: Actualizas tu feature branch frecuentemente con rebase
+git checkout feature-login
+git rebase main
+
+# Si hay conflictos, resuélvelos manualmente
+# ... editar archivos ...
+git add <archivos-resueltos>
+git rebase --continue
+
+# La próxima vez que hagas rebase y aparezca el mismo conflicto,
+# Git lo resolverá automáticamente usando la resolución guardada
+```
+
+**Ver resoluciones guardadas:**
+
+```bash
+# Ver todas las resoluciones guardadas
+git rerere diff
+
+# Limpiar resoluciones guardadas
+git rerere clear
+```
+
+**Casos de uso:**
+
+- Feature branches que se actualizan frecuentemente con rebase
+- Mantener múltiples ramas de release actualizadas
+- Rebases interactivos donde los mismos conflictos aparecen
+
+### 3.6. Git blame y annotate: Rastrear autoría
+
+**Concepto:**
+
+`git blame` muestra qué commit y autor es responsable de cada línea de un archivo. `git annotate` es similar pero con formato diferente.
+
+**Uso básico:**
+
+```bash
+# Ver blame de un archivo
+git blame archivo.py
+
+# Ver blame de líneas específicas
+git blame -L 10,20 archivo.py    # Líneas 10 a 20
+git blame -L 10,+5 archivo.py   # Línea 10 y siguientes 5
+
+# Ver blame ignorando whitespace
+git blame -w archivo.py
+
+# Ver blame con más contexto del commit
+git blame -C archivo.py         # Detecta código movido/copiado
+```
+
+**Salida típica:**
+
+```
+^abc1234 (Juan Pérez   2024-01-15 10:30:15 +0100  1) def funcion():
+^abc1234 (Juan Pérez   2024-01-15 10:30:15 +0100  2)     return True
+def5678  (María García 2024-01-20 14:22:10 +0100  3) 
+def5678  (María García 2024-01-20 14:22:10 +0100  4) def otra_funcion():
+ghi9012  (Pedro López  2024-01-25 09:15:30 +0100  5)     pass
+```
+
+**Annotate (formato alternativo):**
+
+```bash
+git annotate archivo.py
+```
+
+**Integración con editores:**
+
+- **VSCode:** Extensión GitLens muestra blame inline
+- **Vim:** Plugin vim-fugitive
+- **IDE:** La mayoría de IDEs modernos tienen integración de blame
+
+**Casos de uso:**
+
+- Encontrar quién escribió código problemático
+- Entender el contexto histórico de una línea
+- Revisar cambios antes de refactorizar
+- Atribución de código en revisiones
+
+### 3.7. Configuraciones avanzadas y aliases
+
+**Aliases personalizados:**
+
+Los aliases permiten crear atajos para comandos frecuentes:
+
+```bash
+# Crear alias simple
+git config --global alias.st status
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+
+# Ahora puedes usar:
+git st    # en lugar de git status
+git co main    # en lugar de git checkout main
+
+# Alias con parámetros (usando ! para shell)
+git config --global alias.unstage '!git reset HEAD --'
+git config --global alias.last 'log -1 HEAD'
+git config --global alias.visual '!gitk'
+
+# Alias complejos
+git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+# Ver todos los aliases
+git config --global --get-regexp alias
+```
+
+**Aliases útiles recomendados:**
+
+```bash
+# Historial visual mejorado
+git config --global alias.lg "log --oneline --graph --decorate --all --graph"
+
+# Historial con estadísticas
+git config --global alias.ll "log --stat --abbrev-commit"
+
+# Ver cambios no staged
+git config --global alias.dc "diff --cached"
+
+# Ver último commit
+git config --global alias.last "log -1 --stat"
+
+# Deshacer último commit pero mantener cambios
+git config --global alias.undo "reset HEAD~1"
+
+# Ver ramas con última actividad
+git config --global alias.recent "branch --sort=-committerdate"
+```
+
+**Configuraciones avanzadas:**
+
+```bash
+# Colores en output
+git config --global color.ui auto
+git config --global color.branch auto
+git config --global color.diff auto
+
+# Editor por defecto
+git config --global core.editor "code --wait"    # VSCode
+git config --global core.editor vim
+git config --global core.editor "nano -w"
+
+# Pager personalizado
+git config --global core.pager "less -FRX"
+
+# Autocorrección de comandos
+git config --global help.autocorrect 1
+
+# Configuración de merge
+git config --global merge.tool vimdiff
+git config --global merge.conflictstyle diff3    # Muestra versión común
+
+# Configuración de push
+git config --global push.default simple         # Push solo a upstream
+git config --global push.followTags true        # Push tags automáticamente
+
+# Configuración de pull
+git config --global pull.rebase false           # Usar merge por defecto
+git config --global pull.rebase true            # Usar rebase por defecto
+
+# Autocrlf (line endings)
+git config --global core.autocrlf input         # Linux/Mac
+git config --global core.autocrlf true          # Windows
+
+# Ignorar cambios de permisos
+git config --global core.fileMode false
+
+# Configuración de credenciales
+git config --global credential.helper store     # Guardar credenciales
+git config --global credential.helper cache     # Cache temporal (15 min)
+```
+
+**Ver y editar configuración:**
+
+```bash
+# Ver toda la configuración
+git config --list
+git config --global --list
+
+# Ver valor específico
+git config user.name
+git config --global user.email
+
+# Editar configuración manualmente
+git config --global --edit    # Abre editor con .gitconfig
+```
+
+### 3.8. Git attributes y filtros personalizados
+
+**Concepto:**
+
+`.gitattributes` permite especificar atributos especiales para archivos o patrones. Útil para controlar cómo Git maneja archivos específicos.
+
+**Ubicación:**
+
+`.gitattributes` en la raíz del repositorio (similar a `.gitignore`).
+
+**Atributos comunes:**
+
+```gitattributes
+# Forzar line endings
+*.py text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.pdf binary
+
+# Diferencias para archivos específicos
+*.java diff=java
+*.sql diff=sql
+
+# Filtrar archivos (comprimir, normalizar, etc.)
+*.ps1 filter=lf-to-crlf
+
+# Merge strategy
+database.xml merge=ours          # Siempre mantener nuestra versión
+config.local merge=ours
+
+# Export ignore (no incluir en archivos exportados)
+docs/internal/ export-ignore
+```
+
+**Filtros personalizados:**
+
+Los filtros permiten transformar archivos automáticamente al hacer commit/checkout:
+
+```bash
+# Configurar filtro (en .git/config o global)
+git config filter.lf-to-crlf.clean "sed 's/$/\\r/'"
+git config filter.lf-to-crlf.smudge "sed 's/\\r$//'"
+
+# Usar en .gitattributes
+*.txt filter=lf-to-crlf
+```
+
+**Ejemplo: Normalizar whitespace**
+
+```gitattributes
+# .gitattributes
+*.py text
+*.js text
+*.md text
+*.txt text
+
+# Normalizar todos los archivos de texto
+* text=auto
+```
+
+**Casos de uso:**
+
+- Normalizar line endings entre sistemas
+- Marcar archivos como binarios para evitar diffs inútiles
+- Aplicar filtros de formateo automático
+- Controlar estrategias de merge por archivo
+
+### 3.9. Git LFS: Archivos grandes
+
+**Concepto:**
+
+Git LFS (Large File Storage) permite versionar archivos grandes (binarios, videos, modelos ML, etc.) sin que Git los almacene directamente en el repositorio. En su lugar, almacena punteros y los archivos reales en un servidor LFS.
+
+**Instalación:**
+
+```bash
+# Linux
+sudo apt-get install git-lfs    # Debian/Ubuntu
+sudo yum install git-lfs        # RHEL/CentOS
+
+# macOS
+brew install git-lfs
+
+# Windows
+# Descargar desde https://git-lfs.github.com/
+```
+
+**Configuración inicial:**
+
+```bash
+# Inicializar Git LFS en el repositorio
+git lfs install
+
+# Esto modifica .git/config y añade hooks
+```
+
+**Usar Git LFS:**
+
+```bash
+# Rastrear tipos de archivo específicos
+git lfs track "*.psd"           # Archivos Photoshop
+git lfs track "*.mp4"           # Videos
+git lfs track "*.zip"           # Archivos comprimidos
+git lfs track "*.model"         # Modelos de ML
+
+# Rastrear por tamaño (archivos > 100MB)
+git lfs track "*.{zip,tar,gz}" --lockable
+
+# Ver qué se está rastreando
+git lfs track
+
+# Añadir .gitattributes al repositorio
+git add .gitattributes
+git commit -m "Configurar Git LFS"
+```
+
+**Trabajar con archivos LFS:**
+
+```bash
+# Los comandos normales de Git funcionan igual
+git add video.mp4
+git commit -m "Añadir video"
+git push origin main
+
+# Git LFS maneja automáticamente la subida de archivos grandes
+```
+
+**Verificar archivos LFS:**
+
+```bash
+# Ver archivos LFS en el repositorio
+git lfs ls-files
+
+# Ver detalles de un archivo LFS
+git lfs pointer --file=video.mp4
+
+# Migrar archivos existentes a LFS
+git lfs migrate import --include="*.mp4" --everything
+```
+
+**GitLab y LFS:**
+
+GitLab tiene soporte nativo para Git LFS. Los archivos se almacenan en el servidor GitLab.
+
+**Limitaciones y consideraciones:**
+
+- Los archivos LFS no se clonan por defecto (solo punteros)
+- Usar `git lfs pull` para descargar archivos LFS
+- Puede tener costos adicionales en servicios cloud
+- No todos los servidores Git soportan LFS
+
+### 3.10. Otras herramientas avanzadas
+
+**Git bundle: Crear repositorio portátil**
+
+```bash
+# Crear bundle con todo el historial
+git bundle create repo.bundle --all
+
+# Crear bundle de una rama específica
+git bundle create feature.bundle feature-branch
+
+# Clonar desde bundle
+git clone repo.bundle proyecto
+
+# Útil para: Transferir repos sin servidor, backups, trabajo offline
+```
+
+**Git notes: Añadir metadatos a commits**
+
+```bash
+# Añadir nota a un commit
+git notes add -m "Revisado por QA" <hash>
+
+# Ver notas
+git notes show <hash>
+git log --show-notes
+
+# Útil para: Comentarios de revisión, metadatos, información adicional
+```
+
+**Git replace: Reemplazar objetos**
+
+```bash
+# Reemplazar un commit (útil para historial alternativo)
+git replace <hash-viejo> <hash-nuevo>
+
+# Ver reemplazos
+git replace -l
+```
+
+**Git shallow clone: Clonar sin historial completo**
+
+```bash
+# Clonar solo los últimos N commits
+git clone --depth 1 <url>        # Solo último commit
+git clone --depth 10 <url>       # Últimos 10 commits
+
+# Útil para: Repositorios muy grandes, CI/CD, builds rápidos
+```
+
+**Git sparse-checkout: Checkout parcial**
+
+```bash
+# Habilitar sparse-checkout
+git sparse-checkout init --cone
+
+# Especificar directorios a incluir
+git sparse-checkout set src/ tests/
+
+# Útil para: Repositorios monorepo, trabajar solo con partes específicas
+```
+
+**Git submodule avanzado:**
+
+```bash
+# Actualizar todos los submódulos recursivamente
+git submodule update --init --recursive
+
+# Ejecutar comando en todos los submódulos
+git submodule foreach 'git pull origin main'
+
+# Sincronizar submódulos con remoto
+git submodule sync
+```
+
+**Git credential helpers:**
+
+```bash
+# Configurar helper para diferentes protocolos
+git config --global credential.https://gitlab.com.helper store
+git config --global credential.helper 'cache --timeout=3600'
+
+# Usar tokens de acceso personal (PAT) en lugar de contraseñas
+```
+
+---
+
+## 4. Ejercicios prácticos avanzados
+
+### 4.1. Ejercicio 1: Recuperación de commits perdidos (20 minutos)
 
 **Objetivo:** Practicar el uso de `reflog` y `reset` para recuperar trabajo perdido.
 
@@ -546,7 +1323,7 @@ git status
 
 ---
 
-### 3.2. Ejercicio 2: Reorganización completa de historial (25 minutos)
+### 4.2. Ejercicio 2: Reorganización completa de historial (25 minutos)
 
 **Objetivo:** Dominar `rebase interactivo` para limpiar y reorganizar commits antes de hacer push.
 
@@ -663,7 +1440,7 @@ git rebase -i HEAD~3
 
 ---
 
-### 3.3. Ejercicio 3: Resolución de conflictos complejos (20 minutos)
+### 4.3. Ejercicio 3: Resolución de conflictos complejos (20 minutos)
 
 **Objetivo:** Practicar resolución de conflictos en múltiples archivos y situaciones complejas.
 
@@ -842,7 +1619,7 @@ git rebase feature-C
 
 ---
 
-### 3.4. Ejercicio 4: Flujo colaborativo completo (25 minutos)
+### 4.4. Ejercicio 4: Flujo colaborativo completo (25 minutos)
 
 **Objetivo:** Simular un flujo de trabajo colaborativo completo con múltiples desarrolladores.
 
@@ -1031,9 +1808,227 @@ git log --oneline --graph --all
 
 ---
 
-## 4. Casos de uso reales
+### 4.5. Ejercicio 5: Cherry-pick y bisect (25 minutos)
 
-### 4.1. Escenario: Migración de feature branch
+**Objetivo:** Dominar cherry-pick para aplicar commits selectivos y usar bisect para encontrar bugs.
+
+**Parte A: Cherry-pick (15 minutos)**
+
+**Escenario:** Tienes un bugfix en una rama de feature que necesitas aplicar urgentemente a main sin fusionar toda la feature.
+
+**Pasos:**
+
+1. **Preparación - Crear escenario:**
+
+```bash
+mkdir ejercicio-cherry-pick
+cd ejercicio-cherry-pick
+git init
+
+# Crear commit inicial en main
+echo "# Proyecto" > README.md
+git add README.md
+git commit -m "Commit inicial"
+
+# Crear feature branch con varios commits
+git checkout -b feature-completa
+
+echo "def funcion_a():" > app.py
+echo "    return 'A'" >> app.py
+git add app.py
+git commit -m "Feature: añadir función A"
+
+echo "def funcion_b():" >> app.py
+echo "    return 'B'" >> app.py
+git add app.py
+git commit -m "Feature: añadir función B"
+
+# Este es el bugfix que necesitamos en main
+echo "# Bugfix crítico" > fix.txt
+echo "correccion = True" >> fix.txt
+git add fix.txt
+git commit -m "Bugfix: corrección crítica de seguridad"
+
+echo "def funcion_c():" >> app.py
+echo "    return 'C'" >> app.py
+git add app.py
+git commit -m "Feature: añadir función C"
+
+# Ver historial
+git log --oneline
+```
+
+2. **Identificar el commit del bugfix:**
+
+```bash
+# Ver el hash del commit del bugfix
+git log --oneline
+
+# Anotar el hash del commit "Bugfix: corrección crítica"
+# Ejemplo: abc1234
+```
+
+3. **Aplicar cherry-pick a main:**
+
+```bash
+# Volver a main
+git checkout main
+
+# Aplicar solo el commit del bugfix
+git cherry-pick <hash-bugfix>
+
+# Verificar que se aplicó
+git log --oneline
+cat fix.txt
+```
+
+4. **Cherry-pick con conflictos (simular):**
+
+```bash
+# Modificar main para crear conflicto
+echo "modificacion = True" >> fix.txt
+git add fix.txt
+git commit -m "Modificar fix en main"
+
+# Intentar cherry-pick de nuevo (simular)
+# git cherry-pick <hash-bugfix>  # Esto fallaría si el commit ya está aplicado
+
+# En caso real de conflicto:
+# 1. Resolver conflictos manualmente
+# 2. git add <archivos-resueltos>
+# 3. git cherry-pick --continue
+```
+
+5. **Cherry-pick múltiples commits:**
+
+```bash
+# Aplicar rango de commits
+git cherry-pick <hash-inicio>^..<hash-fin>
+
+# O commits específicos
+git cherry-pick <hash1> <hash2> <hash3>
+```
+
+**Parte B: Git bisect (10 minutos)**
+
+**Escenario:** El código funciona en v1.0 pero no en HEAD. Necesitas encontrar qué commit introdujo el bug.
+
+**Pasos:**
+
+1. **Preparar escenario con bug:**
+
+```bash
+# Crear nuevo repositorio
+cd ..
+mkdir ejercicio-bisect
+cd ejercicio-bisect
+git init
+
+# Crear versión funcional
+echo "def suma(a, b):" > calc.py
+echo "    return a + b" >> calc.py
+git add calc.py
+git commit -m "v1.0: función suma funcional"
+git tag v1.0
+
+# Crear varios commits
+echo "def resta(a, b):" >> calc.py
+echo "    return a - b" >> calc.py
+git add calc.py
+git commit -m "Añadir función resta"
+
+echo "def multiplica(a, b):" >> calc.py
+echo "    return a * b" >> calc.py
+git add calc.py
+git commit -m "Añadir función multiplica"
+
+# Este commit introduce el bug
+echo "def divide(a, b):" >> calc.py
+echo "    return a / 0  # BUG: división por cero" >> calc.py
+git add calc.py
+git commit -m "Añadir función divide"
+
+echo "def potencia(a, b):" >> calc.py
+echo "    return a ** b" >> calc.py
+git add calc.py
+git commit -m "Añadir función potencia"
+```
+
+2. **Usar bisect para encontrar el bug:**
+
+```bash
+# Iniciar bisect
+git bisect start
+
+# Marcar HEAD como malo (tiene el bug)
+git bisect bad
+
+# Marcar v1.0 como bueno (funciona)
+git bisect good v1.0
+
+# Git te llevará a un commit intermedio
+# Crear script de prueba
+cat > test_calc.sh << 'EOF'
+#!/bin/bash
+python3 -c "from calc import divide; divide(10, 2)" 2>/dev/null
+if [ $? -eq 0 ]; then
+    exit 0  # good
+else
+    exit 1  # bad
+fi
+EOF
+chmod +x test_calc.sh
+
+# Probar manualmente o usar el script
+./test_calc.sh
+
+# Si falla (tiene el bug):
+git bisect bad
+
+# Si funciona:
+git bisect good
+
+# Continuar hasta que Git identifique el commit problemático
+# Git mostrará: "<hash> is the first bad commit"
+```
+
+3. **Bisect automático:**
+
+```bash
+# Reiniciar bisect
+git bisect reset
+git bisect start HEAD v1.0
+
+# Ejecutar bisect automáticamente
+git bisect run ./test_calc.sh
+
+# Git ejecutará el script en cada commit y encontrará el bug automáticamente
+```
+
+4. **Verificar y finalizar:**
+
+```bash
+# Ver el commit problemático
+git show
+
+# Ver detalles
+git log --oneline
+
+# Finalizar bisect
+git bisect reset
+```
+
+**Preguntas de reflexión:**
+
+- ¿Cuándo es mejor usar cherry-pick vs merge de una rama completa?
+- ¿Qué ventajas tiene bisect sobre revisar commits manualmente?
+- ¿Cómo puedes automatizar bisect para bugs complejos?
+
+---
+
+## 5. Casos de uso reales
+
+### 5.1. Escenario: Migración de feature branch
 
 **Situación:** Has estado trabajando en una feature branch durante una semana. Mientras tanto, `main` ha avanzado significativamente. Necesitas integrar los cambios de `main` en tu feature antes de hacer el merge request.
 
@@ -1061,7 +2056,7 @@ git push --force-with-lease origin mi-feature
 
 **⚠️ Nota:** `--force-with-lease` es más seguro que `--force` porque falla si el remoto ha cambiado desde tu último fetch.
 
-### 4.2. Escenario: Limpieza de historial antes de merge
+### 5.2. Escenario: Limpieza de historial antes de merge
 
 **Situación:** Tu feature branch tiene 15 commits con mensajes como "fix", "otro fix", "cambios", etc. Quieres limpiar el historial antes de crear el merge request.
 
@@ -1089,7 +2084,7 @@ git push --force-with-lease origin mi-feature
 
 **Resultado:** Un historial limpio con commits lógicos y mensajes descriptivos.
 
-### 4.3. Escenario: Recuperación tras error crítico
+### 5.3. Escenario: Recuperación tras error crítico
 
 **Situación:** Has hecho `git reset --hard` por error y perdiste commits importantes. O peor aún, has hecho `git push --force` y reescrito el historial remoto incorrectamente.
 

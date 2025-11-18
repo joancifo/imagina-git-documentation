@@ -419,6 +419,103 @@ git merge feature-login      # Fast-forward
 # Resultado: A---B---F---C'---D'---E' (lineal)
 ```
 
+#### Interfaz gráfica de merge (VSCode/IDE)
+
+Cuando usas una interfaz gráfica (como VSCode, GitKraken, o SourceTree) para hacer merge, normalmente verás un diálogo con opciones que corresponden a las estrategias que acabamos de explicar. Aquí te mostramos cómo interpretar estas opciones:
+
+**Diálogo típico de merge:**
+
+```
+¿Estás seguro de que quieres fusionar la rama feature/buscador 
+en develop (la rama actual)?
+
+☑ Create a new commit even if fast-forward is possible
+☐ Squash Commits
+☐ No Commit
+
+[Yes, merge]  [Cancel]
+```
+
+**Explicación de cada opción:**
+
+1. **"Create a new commit even if fast-forward is possible"** (☑ marcada)
+   - **Equivale a:** `git merge --no-ff feature/buscador`
+   - **Qué hace:** Siempre crea un commit de merge, incluso si Git podría hacer un fast-forward
+   - **Cuándo usar:** Cuando quieres preservar la historia de que hubo una rama separada
+   - **Resultado:** Historial ramificado con commit de merge explícito
+   - **Recomendado para:** Proyectos donde quieres ver claramente qué commits pertenecen a cada feature
+
+2. **"Squash Commits"** (☐ sin marcar)
+   - **Equivale a:** `git merge --squash feature/buscador`
+   - **Qué hace:** Combina todos los commits de la rama feature en un solo commit nuevo
+   - **Cuándo usar:** Cuando la feature tiene muchos commits pequeños y quieres un historial más limpio
+   - **Resultado:** Un solo commit que contiene todos los cambios de la feature
+   - **Ejemplo:**
+     ```
+     Antes: feature tiene 10 commits pequeños
+     Después: Un solo commit "Merge feature/buscador (squashed)"
+     ```
+   - **⚠️ Nota:** Con squash, se pierde el historial detallado de la feature branch
+
+3. **"No Commit"** (☐ sin marcar)
+   - **Equivale a:** `git merge --no-commit feature/buscador`
+   - **Qué hace:** Realiza el merge pero no crea el commit automáticamente
+   - **Cuándo usar:** Cuando quieres revisar o modificar los cambios antes de hacer commit
+   - **Resultado:** Cambios en staging area, listos para revisar y luego hacer `git commit` manualmente
+   - **Útil para:** 
+     - Revisar los cambios antes de confirmar
+     - Añadir más cambios antes del commit
+     - Modificar el mensaje de commit
+
+**Combinaciones comunes:**
+
+**Opción 1: Merge normal con commit (recomendado para la mayoría de casos)**
+```
+☑ Create a new commit even if fast-forward is possible
+☐ Squash Commits
+☐ No Commit
+```
+- Preserva la historia completa
+- Crea commit de merge explícito
+- Útil para proyectos colaborativos
+
+**Opción 2: Squash para historial limpio**
+```
+☐ Create a new commit even if fast-forward is possible
+☑ Squash Commits
+☐ No Commit
+```
+- Combina todos los commits en uno
+- Historial más simple
+- Útil cuando la feature tiene muchos commits pequeños
+
+**Opción 3: Revisar antes de commitear**
+```
+☑ Create a new commit even if fast-forward is possible
+☐ Squash Commits
+☑ No Commit
+```
+- Merge sin commit automático
+- Permite revisar cambios antes de confirmar
+- Útil para merges complejos que requieren revisión
+
+**Equivalencia con comandos de terminal:**
+
+| Interfaz gráfica | Comando terminal equivalente |
+|------------------|------------------------------|
+| ☑ Create new commit, ☐ Squash, ☐ No Commit | `git merge --no-ff feature/buscador` |
+| ☐ Create new commit, ☑ Squash, ☐ No Commit | `git merge --squash feature/buscador` |
+| ☑ Create new commit, ☐ Squash, ☑ No Commit | `git merge --no-ff --no-commit feature/buscador` |
+| ☐ Create new commit, ☐ Squash, ☐ No Commit | `git merge feature/buscador` (fast-forward si es posible) |
+
+**Recomendación:**
+
+Para la mayoría de casos en proyectos colaborativos, usa la **Opción 1** (Create a new commit marcado, los otros sin marcar). Esto:
+- Preserva la historia completa del proyecto
+- Facilita el seguimiento de qué commits pertenecen a qué feature
+- Permite revertir el merge completo si es necesario
+- Es el comportamiento más seguro y transparente
+
 **Resolución de conflictos:**
 
 Cuando Git no puede fusionar automáticamente, marca los conflictos en los archivos:

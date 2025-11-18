@@ -1707,8 +1707,8 @@ git log --oneline
 2. **Rebase interactivo - Limpiar historial:**
 
 ```bash
-# Iniciar rebase interactivo de los últimos 5 commits
-git rebase -i HEAD~5
+# Iniciar rebase interactivo desde el inicio
+git rebase -i --root
 ```
 
 3. **En el editor que se abre, reorganizar:**

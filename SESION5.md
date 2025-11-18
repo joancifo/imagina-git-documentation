@@ -1601,6 +1601,8 @@ hotfix:                         H---J (correcciones urgentes)
 
 **Comandos Git Flow:**
 
+Programa de ejemplo, no hace falta instalar en entornos de producción. Útil para entender Git Flow.
+
 ```bash
 # Instalar git-flow (opcional, ayuda con comandos)
 # Ubuntu/Debian:

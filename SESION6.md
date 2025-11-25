@@ -38,8 +38,17 @@ Esta sesión de **6 horas** está estructurada en tres bloques principales:
 - **Integración Git + CI/CD (10 min):** Cómo Git dispara pipelines y cómo trabajar con tags, branches y MRs.
 - **Observación práctica (30 min):** Explorarás pipelines reales en GitLab para entender el flujo completo.
 
-### Bloque 3: Ejercicios prácticos (3h 55min)
-- **Ejercicios divertidos (1h 45min):** 8 ejercicios progresivos que cubren desde corrección de commits hasta recuperación de código "perdido".
+### Bloque 3: Ejercicios prácticos (5h 5min)
+- **Ejercicios divertidos básicos (1h 45min):** 8 ejercicios progresivos que cubren desde corrección de commits hasta recuperación de código "perdido".
+- **Ejercicios adicionales sencillos (1h 20min):** 8 ejercicios nuevos que cubren temas complementarios:
+  - Comparar cambios con git diff (10 min)
+  - Explorar historial con git log avanzado (10 min)
+  - Limpieza de archivos (git rm, mv, clean) (10 min)
+  - Restaurar archivos con git restore (10 min)
+  - Gestión de remotos (10 min)
+  - Resumen de contribuciones con shortlog (10 min)
+  - Versiones con git describe (10 min)
+  - Crear archivos comprimidos con git archive (10 min)
 - **Ejercicios finales (1h 30min):** 4 ejercicios integradores que simulan escenarios reales:
   - Flujo completo de feature (30 min)
   - Depuración y limpieza de historial (25 min)
@@ -76,10 +85,12 @@ Esta sesión de **6 horas** está estructurada en tres bloques principales:
 7. [Integración de Git con CI/CD](#7-integración-de-git-con-cicd) (10 minutos)
 8. [Observación y comprensión de CI/CD en GitLab](#8-observación-y-comprensión-de-cicd-en-gitlab) (30 minutos)
 9. [Ejercicios divertidos de Git (nivel junior)](#9-ejercicios-divertidos-de-git-nivel-junior) (105 minutos)
+   - 9.1-9.8: Ejercicios básicos (105 min)
+   - 9.9-9.16: Ejercicios adicionales sencillos (80 minutos)
 10. [Ejercicios finales de repaso](#10-ejercicios-finales-de-repaso) (90 minutos)
 11. [Ejercicios avanzados (opcional)](#11-ejercicios-avanzados-opcional) (30 minutos)
 
-**Duración total estimada: 6 horas** (6.5 horas con ejercicios avanzados)
+**Duración total estimada: 6 horas** (7 horas con ejercicios adicionales y avanzados)
 
 ---
 
@@ -906,6 +917,487 @@ deploy-job:
    ```bash
    git config --global alias.whoops 'reset --hard HEAD~1'
    git config --global alias.yolo 'push --force'
+   ```
+
+### 9.9. El arte de comparar cambios (10 minutos)
+
+**Objetivo:** Dominar `git diff` para comparar cambios entre commits, ramas y el working directory.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-diff
+   cd ejercicio-diff
+   git init
+   
+   echo "Línea 1" > archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 1"
+   
+   echo "Línea 2" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 2"
+   
+   echo "Línea 3" >> archivo.txt
+   # No hagas commit todavía
+   ```
+
+2. **Comparar working directory vs staging:**
+   ```bash
+   git diff
+   # Muestra cambios no staged
+   ```
+
+3. **Comparar staging vs último commit:**
+   ```bash
+   git add archivo.txt
+   git diff --staged
+   # O también: git diff --cached
+   ```
+
+4. **Comparar dos commits:**
+   ```bash
+   git commit -m "feat: añadir línea 3"
+   git diff HEAD~2 HEAD
+   # Compara el commit de hace 2 posiciones con el actual
+   ```
+
+5. **Comparar ramas:**
+   ```bash
+   git checkout -b feature/nueva
+   echo "Línea 4 (nueva rama)" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 4"
+   
+   git diff main feature/nueva
+   # Compara main con la nueva rama
+   ```
+
+6. **Ver estadísticas de cambios:**
+   ```bash
+   git diff --stat HEAD~2 HEAD
+   # Muestra resumen de archivos modificados
+   ```
+
+### 9.10. El explorador de historial (10 minutos)
+
+**Objetivo:** Usar `git log` con opciones avanzadas para visualizar y buscar en el historial.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-log
+   cd ejercicio-log
+   git init
+   
+   for i in {1..10}; do
+     echo "Feature $i" > feature$i.txt
+     git add feature$i.txt
+     if [ $((i % 2)) -eq 0 ]; then
+       git commit -m "feat: añadir feature $i"
+     else
+       git commit -m "fix: corregir feature $i"
+     fi
+   done
+   ```
+
+2. **Visualizar historial con gráfico:**
+   ```bash
+   git log --oneline --graph --all --decorate
+   # Muestra un gráfico visual del historial
+   ```
+
+3. **Buscar commits por mensaje:**
+   ```bash
+   git log --grep="feat"
+   # Busca commits que contengan "feat" en el mensaje
+   ```
+
+4. **Buscar cambios de contenido:**
+   ```bash
+   git log -S "Feature 5"
+   # Busca commits que añadieron o eliminaron la cadena "Feature 5"
+   ```
+
+5. **Filtrar por autor:**
+   ```bash
+   git log --author="tu-nombre"
+   # Muestra solo tus commits
+   ```
+
+6. **Ver commits en un rango de fechas:**
+   ```bash
+   git log --since="2 days ago"
+   git log --until="1 week ago"
+   ```
+
+7. **Formato personalizado:**
+   ```bash
+   git log --pretty=format:"%h - %an, %ar : %s"
+   # Formato: hash - autor, tiempo relativo : mensaje
+   ```
+
+### 9.11. Limpieza de archivos (10 minutos)
+
+**Objetivo:** Aprender a eliminar y limpiar archivos con Git usando `git rm`, `git mv` y `git clean`.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-limpieza-archivos
+   cd ejercicio-limpieza-archivos
+   git init
+   
+   echo "Archivo 1" > archivo1.txt
+   echo "Archivo 2" > archivo2.txt
+   echo "Archivo 3" > archivo3.txt
+   git add .
+   git commit -m "feat: añadir archivos iniciales"
+   ```
+
+2. **Eliminar archivo del repositorio:**
+   ```bash
+   git rm archivo1.txt
+   git status
+   # El archivo está staged para eliminación
+   git commit -m "chore: eliminar archivo1"
+   ```
+
+3. **Eliminar archivo pero mantenerlo localmente:**
+   ```bash
+   git rm --cached archivo2.txt
+   git status
+   # El archivo se elimina del tracking pero sigue existiendo
+   # Útil para añadir archivos a .gitignore después de commitearlos
+   ```
+
+4. **Renombrar/mover archivos:**
+   ```bash
+   git mv archivo3.txt archivo-renombrado.txt
+   git status
+   # Git detecta el movimiento automáticamente
+   git commit -m "refactor: renombrar archivo3"
+   ```
+
+5. **Limpiar archivos no rastreados:**
+   ```bash
+   echo "Archivo temporal" > temporal.txt
+   echo "Otro temporal" > otro-temp.txt
+   mkdir temp-dir
+   echo "test" > temp-dir/test.txt
+   
+   # Ver qué se eliminaría (dry-run)
+   git clean -n
+   
+   # Eliminar archivos no rastreados
+   git clean -f
+   
+   # Eliminar también directorios
+   git clean -fd
+   ```
+
+6. **Limpiar de forma interactiva:**
+   ```bash
+   echo "Archivo a eliminar?" > eliminar.txt
+   git clean -i
+   # Te pregunta qué eliminar
+   ```
+
+### 9.12. Restaurar archivos (10 minutos)
+
+**Objetivo:** Usar `git restore` (comando moderno) para restaurar archivos a estados anteriores.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-restore
+   cd ejercicio-restore
+   git init
+   
+   echo "Versión 1" > archivo.txt
+   git add archivo.txt
+   git commit -m "feat: versión 1"
+   
+   echo "Versión 2" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: versión 2"
+   
+   echo "Cambio sin commitear" >> archivo.txt
+   ```
+
+2. **Descartar cambios en working directory:**
+   ```bash
+   git restore archivo.txt
+   # Restaura el archivo al estado del último commit
+   cat archivo.txt
+   # Debería mostrar solo "Versión 1" y "Versión 2"
+   ```
+
+3. **Descartar cambios staged:**
+   ```bash
+   echo "Cambio staged" >> archivo.txt
+   git add archivo.txt
+   git restore --staged archivo.txt
+   git status
+   # El archivo vuelve a estar unstaged
+   ```
+
+4. **Restaurar desde un commit específico:**
+   ```bash
+   git restore --source=HEAD~1 archivo.txt
+   # Restaura el archivo al estado del commit anterior
+   cat archivo.txt
+   # Debería mostrar solo "Versión 1"
+   ```
+
+5. **Restaurar múltiples archivos:**
+   ```bash
+   echo "Archivo 2" > archivo2.txt
+   git add archivo2.txt
+   git commit -m "feat: añadir archivo2"
+   
+   echo "Cambio 1" >> archivo.txt
+   echo "Cambio 2" >> archivo2.txt
+   
+   git restore archivo.txt archivo2.txt
+   # Restaura ambos archivos
+   ```
+
+### 9.13. Gestión de remotos (10 minutos)
+
+**Objetivo:** Aprender a gestionar repositorios remotos con `git remote`, `git fetch` y entender la diferencia con `git pull`.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-remotos
+   cd ejercicio-remotos
+   git init
+   echo "Inicio" > archivo.txt
+   git add archivo.txt
+   git commit -m "init"
+   
+   # Si tienes un repositorio remoto, úsalo. Si no, simula uno:
+   # git remote add origin <url-de-tu-repo>
+   ```
+
+2. **Ver remotos configurados:**
+   ```bash
+   git remote
+   # Lista nombres de remotos
+   git remote -v
+   # Lista nombres y URLs
+   ```
+
+3. **Añadir un remoto:**
+   ```bash
+   # Ejemplo (ajusta la URL):
+   # git remote add origin https://gitlab.com/usuario/repo.git
+   # git remote add upstream https://gitlab.com/original/repo.git
+   ```
+
+4. **Ver información de un remoto:**
+   ```bash
+   git remote show origin
+   # Muestra información detallada del remoto
+   ```
+
+5. **Renombrar remoto:**
+   ```bash
+   # git remote rename origin mi-origen
+   ```
+
+6. **Eliminar remoto:**
+   ```bash
+   # git remote remove mi-origen
+   ```
+
+7. **Fetch vs Pull:**
+   ```bash
+   # Fetch: descarga cambios pero NO los integra
+   # git fetch origin
+   # git log origin/main  # Ver cambios del remoto
+   
+   # Pull: fetch + merge automático
+   # git pull origin main
+   # Equivale a: git fetch origin && git merge origin/main
+   ```
+
+8. **Actualizar URLs de remotos:**
+   ```bash
+   # git remote set-url origin nueva-url
+   ```
+
+### 9.14. El resumen de contribuciones (10 minutos)
+
+**Objetivo:** Usar `git shortlog` para ver un resumen de contribuciones por autor.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-shortlog
+   cd ejercicio-shortlog
+   git init
+   
+   git config user.name "Alice"
+   git config user.email "alice@example.com"
+   
+   for i in {1..5}; do
+     echo "Feature $i" > feature$i.txt
+     git add feature$i.txt
+     git commit -m "feat: feature $i"
+   done
+   
+   git config user.name "Bob"
+   git config user.email "bob@example.com"
+   
+   for i in {6..8}; do
+     echo "Fix $i" > fix$i.txt
+     git add fix$i.txt
+     git commit -m "fix: corrección $i"
+   done
+   ```
+
+2. **Ver resumen por autor:**
+   ```bash
+   git shortlog
+   # Muestra número de commits y lista por autor
+   ```
+
+3. **Ver solo números:**
+   ```bash
+   git shortlog -sn
+   # Muestra solo número de commits por autor
+   ```
+
+4. **Filtrar por rango:**
+   ```bash
+   git shortlog HEAD~5..HEAD
+   # Solo últimos 5 commits
+   ```
+
+5. **Ver por email:**
+   ```bash
+   git shortlog -se
+   # Muestra también emails
+   ```
+
+### 9.15. Versiones con describe (10 minutos)
+
+**Objetivo:** Usar `git describe` para obtener versiones basadas en tags.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-describe
+   cd ejercicio-describe
+   git init
+   
+   for i in {1..10}; do
+     echo "Commit $i" > commit$i.txt
+     git add commit$i.txt
+     git commit -m "feat: commit $i"
+     
+     if [ $i -eq 3 ]; then
+       git tag v1.0.0
+     elif [ $i -eq 7 ]; then
+       git tag v2.0.0
+     fi
+   done
+   ```
+
+2. **Ver versión actual:**
+   ```bash
+   git describe
+   # Muestra: v2.0.0-3-g<hash>
+   # Significa: tag v2.0.0, 3 commits después, hash abreviado
+   ```
+
+3. **Ver versión de un commit específico:**
+   ```bash
+   git checkout HEAD~5
+   git describe
+   # Muestra la versión de ese commit
+   git checkout main
+   ```
+
+4. **Solo tags exactos:**
+   ```bash
+   git checkout v1.0.0
+   git describe --exact-match
+   # Muestra solo si estás exactamente en un tag
+   ```
+
+5. **Con más contexto:**
+   ```bash
+   git describe --always --dirty
+   # Siempre muestra algo, incluso si no hay tags
+   # --dirty añade "-dirty" si hay cambios sin commitear
+   ```
+
+### 9.16. Crear archivos comprimidos (10 minutos)
+
+**Objetivo:** Usar `git archive` para crear archivos comprimidos de versiones específicas.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-archive
+   cd ejercicio-archive
+   git init
+   
+   echo "Código fuente" > src/main.js
+   echo "README" > README.md
+   mkdir docs
+   echo "Documentación" > docs/guide.txt
+   
+   git add .
+   git commit -m "feat: proyecto inicial"
+   
+   git tag v1.0.0
+   
+   echo "Nueva feature" >> src/main.js
+   git add src/main.js
+   git commit -m "feat: nueva feature"
+   ```
+
+2. **Crear archivo tar del último commit:**
+   ```bash
+   git archive -o release.tar HEAD
+   # Crea un archivo tar
+   ```
+
+3. **Crear archivo zip de un tag:**
+   ```bash
+   git archive -o v1.0.0.zip v1.0.0
+   # Crea un zip de la versión 1.0.0
+   ```
+
+4. **Crear tar.gz comprimido:**
+   ```bash
+   git archive --format=tar.gz -o release.tar.gz HEAD
+   # O simplemente:
+   git archive -o release.tar.gz HEAD
+   ```
+
+5. **Incluir solo ciertos archivos:**
+   ```bash
+   git archive -o src-only.tar HEAD src/
+   # Solo archivos en el directorio src/
+   ```
+
+6. **Verificar el contenido:**
+   ```bash
+   tar -tzf release.tar.gz
+   # Lista contenido del archivo
    ```
 
 ---

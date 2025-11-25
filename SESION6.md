@@ -1,5 +1,70 @@
 # Sesión 6: Git avanzado, CI/CD con GitLab CI y prácticas profesionales
 
+## Bienvenida
+
+¡Bienvenidos y bienvenidas a la sesión 6! Esta es la sesión final de nuestro curso de Git, donde consolidaremos todo lo aprendido y nos adentraremos en herramientas avanzadas que te convertirán en un desarrollador o desarrolladora más eficiente y profesional.
+
+Hoy vamos a explorar:
+- **Herramientas de depuración avanzadas** como `git bisect` para encontrar bugs de forma eficiente
+- **Automatización local** con Git hooks para mejorar tu flujo de trabajo
+- **CI/CD con GitLab** para entender cómo se integra Git con la integración y despliegue continuo
+- **Ejercicios prácticos** que simulan situaciones reales del día a día
+
+Esta sesión está diseñada para ser **100% práctica**. No solo aprenderás conceptos, sino que los aplicarás inmediatamente en ejercicios que reflejan problemas reales que encontrarás en tu carrera profesional.
+
+**Objetivos de la sesión:**
+- Dominar herramientas avanzadas de Git para depuración y mantenimiento
+- Implementar automatizaciones locales con hooks
+- Comprender cómo Git se integra con CI/CD
+- Resolver problemas complejos de forma eficiente y profesional
+
+¡Vamos a ello!
+
+---
+
+## Resumen de la sesión
+
+Esta sesión de **6 horas** está estructurada en tres bloques principales:
+
+### Bloque 1: Herramientas avanzadas de Git (1h 10min)
+- **Git bisect (30 min):** Aprenderás a usar la búsqueda binaria para encontrar el commit exacto que introdujo un bug, reduciendo horas de búsqueda manual a minutos.
+- **Git hooks (40 min):** Automatizarás tareas locales como validación de código, ejecución de tests y verificación de formato de commits antes de que lleguen al repositorio remoto.
+
+### Bloque 2: CI/CD con GitLab (1h 25min)
+- **Introducción a CI/CD (15 min):** Conceptos fundamentales de integración y despliegue continuo.
+- **GitLab CI/CD fundamentos (20 min):** Configuración de pipelines con `.gitlab-ci.yml`, stages, jobs y artifacts.
+- **Conceptos avanzados (10 min):** Docker, jobs paralelos, environments y variables protegidas.
+- **Prácticas y patrones (10 min):** Mejores prácticas para pipelines eficientes y seguros.
+- **Integración Git + CI/CD (10 min):** Cómo Git dispara pipelines y cómo trabajar con tags, branches y MRs.
+- **Observación práctica (30 min):** Explorarás pipelines reales en GitLab para entender el flujo completo.
+
+### Bloque 3: Ejercicios prácticos (3h 55min)
+- **Ejercicios divertidos (1h 45min):** 8 ejercicios progresivos que cubren desde corrección de commits hasta recuperación de código "perdido".
+- **Ejercicios finales (1h 30min):** 4 ejercicios integradores que simulan escenarios reales:
+  - Flujo completo de feature (30 min)
+  - Depuración y limpieza de historial (25 min)
+  - Resolución de conflictos complejos (20 min)
+  - Migración compleja con cherry-pick y revert (45 min)
+- **Ejercicios avanzados (30 min, opcional):** 5 desafíos adicionales para quienes quieran profundizar:
+  - Git worktree para múltiples working directories (15 min)
+  - Reescritura avanzada de historial (20 min)
+  - Hooks avanzados con integración CI/CD (15 min)
+  - Git submodules para gestión de dependencias (20 min)
+  - Desafío del historial complejo (25 min)
+
+**Material necesario:**
+- Acceso a GitLab (cuenta gratuita es suficiente)
+- Git instalado y configurado
+- Editor de texto o IDE
+- Terminal/consola
+
+**Requisitos previos:**
+- Conocimiento de comandos básicos de Git (commit, push, pull, branch, merge)
+- Familiaridad con la terminal/consola
+- Haber completado las sesiones anteriores del curso
+
+---
+
 ## Índice de la sesión
 
 1. [Git bisect: búsqueda binaria de bugs](#1-git-bisect-búsqueda-binaria-de-bugs) (30 minutos)
@@ -12,8 +77,9 @@
 8. [Observación y comprensión de CI/CD en GitLab](#8-observación-y-comprensión-de-cicd-en-gitlab) (30 minutos)
 9. [Ejercicios divertidos de Git (nivel junior)](#9-ejercicios-divertidos-de-git-nivel-junior) (105 minutos)
 10. [Ejercicios finales de repaso](#10-ejercicios-finales-de-repaso) (90 minutos)
+11. [Ejercicios avanzados (opcional)](#11-ejercicios-avanzados-opcional) (30 minutos)
 
-**Duración total estimada: 6 horas**
+**Duración total estimada: 6 horas** (6.5 horas con ejercicios avanzados)
 
 ---
 
@@ -1122,6 +1188,397 @@ Trabajas en un proyecto que tiene una versión "Legacy" (mantenimiento) y una ve
 - **Cherry-pick:** Cirugía de precisión para copiar commits.
 - **Revert:** La forma ética de deshacer cambios en ramas públicas.
 - **Revertir Merges:** Requiere especificar la línea base (`-m 1`).
+
+---
+
+## 11. Ejercicios avanzados (opcional)
+
+Esta sección contiene ejercicios desafiantes para quienes quieran profundizar aún más. Estos ejercicios son **opcionales** y están diseñados para situaciones profesionales complejas.
+
+### 11.1. Ejercicio E: Git worktree - múltiples working directories (15 minutos)
+
+**Objetivo:** Aprender a trabajar con múltiples ramas simultáneamente usando `git worktree`.
+
+**Escenario:** Necesitas trabajar en un hotfix urgente mientras tienes cambios sin commitear en tu feature actual. No puedes usar stash porque necesitas ambas versiones abiertas al mismo tiempo.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-worktree
+   cd ejercicio-worktree
+   git init
+   echo "main" > app.js
+   git add app.js
+   git commit -m "init: aplicación base"
+   
+   # Crea una feature branch con cambios
+   git checkout -b feature/nueva-funcionalidad
+   echo "// Nueva funcionalidad" >> app.js
+   git add app.js
+   git commit -m "feat: añadir nueva funcionalidad"
+   echo "// Cambios sin commitear" >> app.js
+   ```
+
+2. **Crear un worktree para el hotfix:**
+   - Necesitas hacer un hotfix en `main` sin perder tus cambios actuales.
+   - Crea un worktree adicional:
+     ```bash
+     git worktree add ../ejercicio-worktree-hotfix main
+     ```
+   - Esto crea un directorio separado con una copia limpia de `main`.
+
+3. **Trabajar en ambos simultáneamente:**
+   - En el directorio original (`ejercicio-worktree`), verifica que tus cambios siguen ahí:
+     ```bash
+     cat app.js
+     ```
+   - Ve al nuevo worktree:
+     ```bash
+     cd ../ejercicio-worktree-hotfix
+     ```
+   - Crea el hotfix:
+     ```bash
+     echo "// Hotfix crítico" >> app.js
+     git add app.js
+     git commit -m "fix: hotfix crítico"
+     ```
+   - Vuelve al directorio original y verifica que tus cambios siguen intactos:
+     ```bash
+     cd ../ejercicio-worktree
+     cat app.js
+     git status
+     ```
+
+4. **Limpiar:**
+   - Cuando termines, elimina el worktree:
+     ```bash
+     git worktree remove ../ejercicio-worktree-hotfix
+     ```
+
+**Conceptos clave:**
+- **Worktree:** Permite tener múltiples working directories del mismo repositorio.
+- **Útil para:** Hotfixes urgentes, comparar versiones, builds paralelos.
+
+### 11.2. Ejercicio F: Reescritura avanzada de historial (20 minutos)
+
+**Objetivo:** Dominar técnicas avanzadas de reescritura de historial con `git filter-branch` o `git filter-repo`.
+
+**Escenario:** Necesitas limpiar el historial de un repositorio antes de hacerlo público: eliminar archivos sensibles que fueron commitados por error y cambiar el autor de commits antiguos.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-reescritura
+   cd ejercicio-reescritura
+   git init
+   
+   # Crear historial con problemas
+   echo "Código público" > public.js
+   echo "API_KEY=secret123" > .env
+   git add .
+   git commit -m "feat: código inicial"
+   
+   git config user.name "Old Name"
+   git config user.email "old@example.com"
+   
+   echo "Más código" >> public.js
+   git add public.js
+   git commit -m "feat: más funcionalidades"
+   
+   # Cambiar config para simular otro autor
+   git config user.name "New Name"
+   git config user.email "new@example.com"
+   
+   echo "Aún más código" >> public.js
+   git add public.js
+   git commit -m "feat: funcionalidades finales"
+   ```
+
+2. **Eliminar archivo sensible del historial:**
+   - El archivo `.env` con la API key nunca debería haber sido commitado.
+   - Usa `git filter-branch` para eliminarlo de todo el historial:
+     ```bash
+     git filter-branch --force --index-filter \
+       "git rm --cached --ignore-unmatch .env" \
+       --prune-empty --tag-name-filter cat -- --all
+     ```
+   - Verifica que `.env` ya no existe en ningún commit:
+     ```bash
+     git log --all --full-history -- .env
+     # No debería mostrar nada
+     ```
+
+3. **Cambiar autor de commits antiguos:**
+   - Necesitas cambiar el autor de los commits antiguos a tu nombre actual.
+   - Primero, identifica los commits con el autor antiguo:
+     ```bash
+     git log --format="%H %an %ae"
+     ```
+   - Usa `git filter-branch` para cambiar el autor:
+     ```bash
+     git filter-branch --force --env-filter '
+       if [ "$GIT_AUTHOR_EMAIL" = "old@example.com" ]; then
+         export GIT_AUTHOR_NAME="New Name"
+         export GIT_AUTHOR_EMAIL="new@example.com"
+       fi
+     ' --tag-name-filter cat -- --all
+     ```
+
+4. **Limpiar referencias:**
+   - Después de reescribir el historial, limpia las referencias de respaldo:
+     ```bash
+     rm -rf .git/refs/original/
+     git reflog expire --expire=now --all
+     git gc --prune=now --aggressive
+     ```
+
+**⚠️ Advertencia importante:**
+- `git filter-branch` reescribe el historial. **NUNCA** lo uses en ramas compartidas sin coordinación.
+- Si ya hiciste push, necesitarás `git push --force`, lo cual puede romper el trabajo de otros.
+- Considera usar `git filter-repo` (más moderno y eficiente) en lugar de `filter-branch`.
+
+### 11.3. Ejercicio G: Hooks avanzados con integración CI/CD (15 minutos)
+
+**Objetivo:** Crear hooks que se integren con tu pipeline de CI/CD y validen código antes de push.
+
+**Escenario:** Quieres asegurar que el código que se sube cumple con estándares de calidad antes de que se ejecute el pipeline costoso en GitLab.
+
+**Instrucciones:**
+
+1. **Preparación:**
+   ```bash
+   mkdir ejercicio-hooks-avanzados
+   cd ejercicio-hooks-avanzados
+   git init
+   
+   # Crear estructura de proyecto simple
+   mkdir src
+   echo "function hello() { console.log('Hello'); }" > src/app.js
+   git add .
+   git commit -m "init: proyecto base"
+   ```
+
+2. **Crear hook pre-push avanzado:**
+   - Crea un hook que valide el código antes de hacer push:
+     ```bash
+     cat > .git/hooks/pre-push << 'EOF'
+     #!/bin/bash
+     
+     echo "🔍 Ejecutando validaciones pre-push..."
+     
+     # Validar que no hay console.log en producción
+     if git diff --cached --name-only | xargs grep -l "console.log" 2>/dev/null; then
+         echo "❌ Error: Se encontraron console.log en archivos staged"
+         echo "   Por favor, elimínalos antes de hacer push"
+         exit 1
+     fi
+     
+     # Validar formato de commits (conventional commits)
+     while read local_ref local_sha remote_ref remote_sha
+     do
+         if [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+             commit_msg=$(git log --format=%B -n 1 $local_sha)
+             if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"; then
+                 echo "❌ Error: El commit no sigue el formato conventional commits"
+                 echo "   Formato: tipo(scope): descripción"
+                 echo "   Commit: $commit_msg"
+                 exit 1
+             fi
+         fi
+     done
+     
+     echo "✅ Validaciones pasadas. Procediendo con push..."
+     exit 0
+     EOF
+     
+     chmod +x .git/hooks/pre-push
+     ```
+
+3. **Probar el hook:**
+   - Intenta hacer un commit con console.log:
+     ```bash
+     echo "console.log('test');" >> src/app.js
+     git add src/app.js
+     git commit -m "feat: añadir logging"
+     ```
+   - Intenta hacer push (aunque no tengas remote, el hook se ejecutará):
+     ```bash
+     git push origin main 2>&1 || echo "Hook ejecutado (esperado si no hay remote)"
+     ```
+
+4. **Crear hook post-merge para actualizar dependencias:**
+   - Crea un hook que actualice dependencias después de un merge:
+     ```bash
+     cat > .git/hooks/post-merge << 'EOF'
+     #!/bin/bash
+     
+     echo "🔄 Actualizando dependencias después del merge..."
+     
+     # Simular actualización de dependencias
+     if [ -f "package.json" ]; then
+         echo "   Ejecutando npm install..."
+         # npm install (comentado para el ejercicio)
+     fi
+     
+     echo "✅ Dependencias actualizadas"
+     exit 0
+     EOF
+     
+     chmod +x .git/hooks/post-merge
+     ```
+
+**Conceptos clave:**
+- **Pre-push hooks:** Útiles para validaciones costosas antes de subir código.
+- **Post-merge hooks:** Automatizan tareas después de actualizar código.
+- **Integración CI/CD:** Los hooks locales complementan (no reemplazan) la validación en CI/CD.
+
+### 11.4. Ejercicio H: Git submodules - gestión de dependencias (20 minutos)
+
+**Objetivo:** Aprender a usar submodules para incluir repositorios dentro de otros repositorios.
+
+**Escenario:** Tienes una librería compartida que usan múltiples proyectos. Quieres incluirla como dependencia pero mantenerla como repositorio independiente.
+
+**Instrucciones:**
+
+1. **Preparación - crear el repositorio de la librería:**
+   ```bash
+   # Terminal 1: Crear librería
+   mkdir mi-libreria
+   cd mi-libreria
+   git init
+   echo "export function saludar() { return 'Hola'; }" > index.js
+   git add index.js
+   git commit -m "feat: librería base"
+   ```
+
+2. **Crear el proyecto principal:**
+   ```bash
+   # Terminal 2: Crear proyecto
+   mkdir mi-proyecto
+   cd mi-proyecto
+   git init
+   echo "import { saludar } from './libs/mi-libreria';" > app.js
+   git add app.js
+   git commit -m "init: proyecto principal"
+   ```
+
+3. **Añadir la librería como submodule:**
+   - Desde `mi-proyecto`, añade la librería como submodule:
+     ```bash
+     # Usa la ruta absoluta o relativa de mi-libreria
+     git submodule add ../mi-libreria libs/mi-libreria
+     ```
+   - Esto crea:
+     - Un directorio `libs/mi-libreria` con el código de la librería
+     - Un archivo `.gitmodules` que describe el submodule
+   - Haz commit de estos cambios:
+     ```bash
+     git add .gitmodules libs/mi-libreria
+     git commit -m "feat: añadir librería como submodule"
+     ```
+
+4. **Trabajar con submodules:**
+   - Ver el estado de los submodules:
+     ```bash
+     git submodule status
+     ```
+   - Actualizar submodules a la última versión:
+     ```bash
+     git submodule update --remote
+     ```
+   - Clonar un proyecto con submodules:
+     ```bash
+     # Si clonas el proyecto desde otro lugar:
+     git clone <url> proyecto-clonado
+     cd proyecto-clonado
+     git submodule init
+     git submodule update
+     # O en un solo paso:
+     git clone --recurse-submodules <url> proyecto-clonado
+     ```
+
+5. **Actualizar la librería:**
+   - Ve a la librería y haz cambios:
+     ```bash
+     cd libs/mi-libreria
+     echo "export function despedir() { return 'Adiós'; }" >> index.js
+     git add index.js
+     git commit -m "feat: añadir función despedir"
+     ```
+   - Vuelve al proyecto principal y actualiza la referencia:
+     ```bash
+     cd ../..
+     git submodule update --remote libs/mi-libreria
+     git add libs/mi-libreria
+     git commit -m "chore: actualizar submodule a nueva versión"
+     ```
+
+**Conceptos clave:**
+- **Submodules:** Permiten incluir repositorios como dependencias.
+- **Ventajas:** Mantiene repositorios separados, versionado independiente.
+- **Desventajas:** Puede ser complejo de gestionar, requiere comandos especiales.
+- **Alternativas modernas:** Git subtrees, monorepos con herramientas como Lerna/Nx.
+
+### 11.5. Ejercicio I: El desafío del historial complejo (25 minutos)
+
+**Objetivo:** Resolver un escenario complejo combinando múltiples técnicas avanzadas.
+
+**Escenario:** Tienes un repositorio con un historial desastroso:
+- Commits con archivos sensibles
+- Múltiples ramas con historial divergente
+- Un merge que introdujo un bug crítico
+- Necesitas limpiar todo y crear un historial limpio
+
+**Instrucciones:**
+
+1. **Preparación del caos:**
+   ```bash
+   mkdir ejercicio-caos
+   cd ejercicio-caos
+   git init
+   
+   # Crear historial problemático
+   echo "Código v1" > app.js
+   echo "SECRET_KEY=abc123" > .env
+   git add .
+   git commit -m "init"
+   
+   git checkout -b feature/a
+   echo "Feature A" >> app.js
+   git commit -am "feat: feature a"
+   
+   git checkout main
+   git checkout -b feature/b
+   echo "Feature B" >> app.js
+   git commit -am "feat: feature b"
+   
+   git checkout main
+   git merge --no-ff feature/a
+   git merge --no-ff feature/b
+   
+   # Introducir bug
+   echo "BUG = true" >> app.js
+   git commit -am "feat: introducir bug"
+   ```
+
+2. **Misión: Limpiar el historial**
+   - **Paso 1:** Elimina `.env` de todo el historial usando `git filter-branch`.
+   - **Paso 2:** Encuentra el commit que introdujo el bug usando `git bisect`.
+   - **Paso 3:** Crea una rama `fix/bug` desde antes del merge problemático.
+   - **Paso 4:** Aplica el fix usando `cherry-pick` de los commits buenos de `feature/a` y `feature/b`.
+   - **Paso 5:** Haz rebase interactivo para limpiar mensajes de commit.
+   - **Paso 6:** Crea un tag `v1.0.0-clean` en el commit limpio.
+
+3. **Verificación:**
+   - El historial debe estar limpio, sin `.env`, sin el bug, y con mensajes descriptivos.
+   - Usa `git log --oneline --graph --all` para visualizar el resultado.
+
+**Pistas:**
+- Combina las técnicas aprendidas en los ejercicios anteriores.
+- Usa `git reflog` si te pierdes.
+- Considera crear una rama de respaldo antes de empezar: `git branch backup`.
 
 ---
 

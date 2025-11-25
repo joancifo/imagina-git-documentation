@@ -9,4 +9,5 @@ Esta guía proporciona una introducción completa a Git y GitLab Self-Managed, c
 - [Sesión 3](SESION3.md)
 - [Sesión 4](SESION4.md)
 - [Sesión 5](SESION5.md)
+- [Sesión 6](SESION6.md)
 - [Cheatsheet](cheatsheet.md)

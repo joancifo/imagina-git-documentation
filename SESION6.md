@@ -4,13 +4,14 @@
 
 1. [Git bisect: búsqueda binaria de bugs](#1-git-bisect-búsqueda-binaria-de-bugs) (30 minutos)
 2. [Git hooks: automatización local](#2-git-hooks-automatización-local) (40 minutos)
-3. [Introducción a CI/CD](#3-introducción-a-cicd) (30 minutos)
-4. [GitLab CI/CD: fundamentos](#4-gitlab-cicd-fundamentos) (60 minutos)
-5. [GitLab CI/CD: conceptos avanzados](#5-gitlab-cicd-conceptos-avanzados) (50 minutos)
-6. [GitLab CI/CD: prácticas y patrones](#6-gitlab-cicd-prácticas-y-patrones) (45 minutos)
-7. [Integración de Git con CI/CD](#7-integración-de-git-con-cicd) (30 minutos)
+3. [Introducción a CI/CD](#3-introducción-a-cicd) (15 minutos)
+4. [GitLab CI/CD: fundamentos](#4-gitlab-cicd-fundamentos) (20 minutos)
+5. [GitLab CI/CD: conceptos avanzados](#5-gitlab-cicd-conceptos-avanzados) (10 minutos)
+6. [GitLab CI/CD: prácticas y patrones](#6-gitlab-cicd-prácticas-y-patrones) (10 minutos)
+7. [Integración de Git con CI/CD](#7-integración-de-git-con-cicd) (10 minutos)
 8. [Observación y comprensión de CI/CD en GitLab](#8-observación-y-comprensión-de-cicd-en-gitlab) (30 minutos)
-9. [Ejercicios finales de repaso](#9-ejercicios-finales-de-repaso) (75 minutos)
+9. [Ejercicios divertidos de Git (nivel junior)](#9-ejercicios-divertidos-de-git-nivel-junior) (105 minutos)
+10. [Ejercicios finales de repaso](#10-ejercicios-finales-de-repaso) (75 minutos)
 
 **Duración total estimada: 5 horas**
 
@@ -292,58 +293,29 @@ Los hooks en `.git/hooks/` no se versionan. Para compartirlos:
 
 ## 3. Introducción a CI/CD
 
-CI/CD (Continuous Integration / Continuous Deployment) es una práctica de desarrollo de software que automatiza la integración, pruebas y despliegue de código.
+CI/CD (Continuous Integration / Continuous Deployment) automatiza la integración, pruebas y despliegue de código.
 
 ### 3.1. ¿Qué es CI/CD?
 
-**Continuous Integration (CI):**
-- Integración continua del código de múltiples desarrolladores
-- Ejecución automática de tests en cada cambio
-- Detección temprana de problemas
-- Construcción automática de artefactos
+**Continuous Integration (CI):** Integración continua del código, ejecución automática de tests en cada cambio, detección temprana de problemas.
 
-**Continuous Deployment/Delivery (CD):**
-- **Continuous Delivery:** El código está siempre listo para desplegarse
-- **Continuous Deployment:** El código se despliega automáticamente a producción
+**Continuous Deployment/Delivery (CD):** El código está siempre listo para desplegarse (Delivery) o se despliega automáticamente (Deployment).
 
-### 3.2. Beneficios de CI/CD
+### 3.2. Pipeline de CI/CD
 
-1. **Detección temprana de bugs:** Los problemas se encuentran antes de llegar a producción
-2. **Despliegues más rápidos:** Automatización reduce el tiempo de despliegue
-3. **Mayor confianza:** Tests automatizados dan seguridad al equipo
-4. **Mejor colaboración:** Integración continua facilita el trabajo en equipo
-5. **Rollback rápido:** Si algo falla, se puede revertir rápidamente
+Un pipeline ejecuta pasos automatizados en secuencia: `Código → Build → Test → Deploy → Monitoreo`
 
-### 3.3. Pipeline de CI/CD
+**Etapas típicas:** Build (compilar), Test (tests unitarios/integración), Lint (calidad), Security scan, Deploy (dev/staging/prod).
 
-Un pipeline es una serie de pasos automatizados que se ejecutan en secuencia:
+### 3.3. GitLab CI/CD
 
-```
-Código → Build → Test → Deploy → Monitoreo
-```
-
-**Etapas típicas:**
-1. **Build:** Compilar el código
-2. **Test:** Ejecutar tests unitarios, de integración, etc.
-3. **Lint:** Verificar calidad de código
-4. **Security scan:** Buscar vulnerabilidades
-5. **Deploy:** Desplegar a diferentes ambientes (dev, staging, prod)
-
-### 3.4. GitLab CI/CD
-
-GitLab incluye un sistema completo de CI/CD integrado:
-- **GitLab CI:** Motor de CI/CD integrado
+GitLab incluye CI/CD integrado con:
+- **GitLab CI:** Motor de CI/CD
 - **GitLab Runner:** Ejecutor de jobs
-- **GitLab Pages:** Hosting estático
-- **Container Registry:** Registro de imágenes Docker
-
-### 3.5. Conceptos clave
-
 - **Pipeline:** Conjunto de jobs que se ejecutan en un commit
 - **Stage:** Fase del pipeline (build, test, deploy)
-- **Job:** Tarea individual que se ejecuta en un stage
-- **Runner:** Máquina que ejecuta los jobs
-- **Artifact:** Archivo generado por un job y disponible para otros jobs
+- **Job:** Tarea individual en un stage
+- **Artifact:** Archivo generado por un job
 
 ---
 
@@ -351,13 +323,9 @@ GitLab incluye un sistema completo de CI/CD integrado:
 
 ### 4.1. Archivo `.gitlab-ci.yml`
 
-El archivo `.gitlab-ci.yml` define la configuración del pipeline. Debe estar en la raíz del repositorio.
-
-**Estructura básica:**
+El archivo `.gitlab-ci.yml` en la raíz del repositorio define el pipeline:
 
 ```yaml
-# .gitlab-ci.yml
-
 stages:
   - build
   - test
@@ -366,7 +334,6 @@ stages:
 build-job:
   stage: build
   script:
-    - echo "Building the application..."
     - npm install
     - npm run build
   artifacts:
@@ -376,7 +343,6 @@ build-job:
 test-job:
   stage: test
   script:
-    - echo "Running tests..."
     - npm test
   dependencies:
     - build-job
@@ -384,760 +350,54 @@ test-job:
 deploy-job:
   stage: deploy
   script:
-    - echo "Deploying to production..."
     - ./deploy.sh
   only:
     - main
 ```
 
-### 4.2. Stages (etapas)
-
-Los stages definen el orden de ejecución de los jobs:
-
-```yaml
-stages:
-  - build      # Primera etapa
-  - test       # Segunda etapa
-  - deploy     # Tercera etapa
-```
-
-Los jobs en el mismo stage se ejecutan en paralelo (si hay runners disponibles).
-
-### 4.3. Jobs
-
-Un job es una tarea que se ejecuta en un stage específico:
-
-```yaml
-job-name:
-  stage: build
-  script:
-    - echo "Hello from GitLab CI"
-```
-
-**Elementos de un job:**
-- `stage`: Etapa en la que se ejecuta
-- `script`: Comandos a ejecutar
-- `image`: Imagen Docker a usar
-- `before_script`: Comandos antes del script principal
-- `after_script`: Comandos después del script principal
-- `artifacts`: Archivos a guardar
-- `dependencies`: Jobs de los que depende
-- `only/except`: Cuándo ejecutar el job
-- `when`: Cuándo ejecutar (on_success, on_failure, always, manual)
-
-### 4.4. Variables de entorno
-
-Puedes definir variables en varios lugares:
-
-**En el archivo `.gitlab-ci.yml`:**
-```yaml
-variables:
-  NODE_VERSION: "18"
-  DATABASE_URL: "postgresql://localhost/mydb"
-
-build-job:
-  script:
-    - echo "Using Node $NODE_VERSION"
-```
-
-**En GitLab UI:**
-Settings → CI/CD → Variables
-
-**Variables predefinidas:**
-- `CI_COMMIT_SHA`: Hash del commit
-- `CI_COMMIT_REF_NAME`: Nombre de la rama
-- `CI_PROJECT_NAME`: Nombre del proyecto
-- `CI_JOB_NAME`: Nombre del job actual
-- `CI_PIPELINE_ID`: ID del pipeline
-
-### 4.5. Ejemplo completo: Pipeline para aplicación Node.js
-
-```yaml
-# .gitlab-ci.yml
-
-image: node:18
-
-stages:
-  - install
-  - lint
-  - test
-  - build
-  - deploy
-
-variables:
-  NODE_ENV: "test"
-
-cache:
-  paths:
-    - node_modules/
-
-install-dependencies:
-  stage: install
-  script:
-    - npm ci
-  artifacts:
-    paths:
-      - node_modules/
-    expire_in: 1 hour
-
-lint-code:
-  stage: lint
-  script:
-    - npm run lint
-  dependencies:
-    - install-dependencies
-
-unit-tests:
-  stage: test
-  script:
-    - npm run test:unit
-  coverage: '/Coverage: \d+\.\d+%/'
-  dependencies:
-    - install-dependencies
-
-integration-tests:
-  stage: test
-  script:
-    - npm run test:integration
-  dependencies:
-    - install-dependencies
-
-build-application:
-  stage: build
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-  dependencies:
-    - install-dependencies
-
-deploy-staging:
-  stage: deploy
-  script:
-    - echo "Deploying to staging..."
-    - ./scripts/deploy.sh staging
-  environment:
-    name: staging
-    url: https://staging.example.com
-  only:
-    - develop
-
-deploy-production:
-  stage: deploy
-  script:
-    - echo "Deploying to production..."
-    - ./scripts/deploy.sh production
-  environment:
-    name: production
-    url: https://example.com
-  only:
-    - main
-  when: manual
-```
-
-### 4.6. Condiciones: only y except
-
-Controla cuándo se ejecuta un job:
-
-```yaml
-# Solo en la rama main
-deploy-production:
-  only:
-    - main
-
-# Solo en tags
-release:
-  only:
-    - tags
-
-# Solo en merge requests
-review:
-  only:
-    - merge_requests
-
-# Excluir ciertas ramas
-test:
-  except:
-    - main
-    - develop
-
-# Múltiples condiciones
-deploy:
-  only:
-    - main
-    - tags
-  except:
-    - schedules
-```
-
-### 4.7. Artifacts
-
-Los artifacts son archivos generados por un job y disponibles para otros jobs:
-
-```yaml
-build:
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-      - build/
-    exclude:
-      - "*.log"
-    expire_in: 1 week
-    reports:
-      junit: test-results.xml
-```
-
-**Tipos de artifacts:**
-- `paths`: Archivos y directorios a guardar
-- `exclude`: Archivos a excluir
-- `expire_in`: Tiempo de expiración
-- `reports`: Reportes especiales (junit, coverage, etc.)
-
-### 4.8. Cache
-
-El cache acelera builds subsecuentes:
-
-```yaml
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
-    - .cache/
-
-build:
-  script:
-    - npm ci
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - node_modules/
-    policy: pull-push
-```
+**Conceptos clave:**
+- **Stages:** Etapas que se ejecutan en orden (build, test, deploy)
+- **Jobs:** Tareas en un stage (se ejecutan en paralelo dentro del mismo stage)
+- **Script:** Comandos a ejecutar
+- **Artifacts:** Archivos generados disponibles para otros jobs
+- **Dependencies:** Jobs de los que depende
+- **Only/except:** Controla cuándo se ejecuta (ramas, tags, MRs)
+- **Variables:** `CI_COMMIT_SHA`, `CI_COMMIT_REF_NAME`, `CI_PROJECT_NAME`, etc.
 
 ---
 
 ## 5. GitLab CI/CD: conceptos avanzados
 
-### 5.1. Imágenes Docker
+**Imágenes Docker:** Usa `image: node:18` para definir el entorno. Puedes usar `services:` para bases de datos, redis, etc.
 
-Puedes usar imágenes Docker para ejecutar tus jobs:
+**Jobs paralelos:** `parallel: 5` ejecuta 5 instancias del mismo job.
 
-```yaml
-# Imagen global
-image: node:18
+**Jobs manuales:** `when: manual` requiere intervención manual.
 
-# Imagen por job
-test-job:
-  image: node:18-alpine
-  script:
-    - npm test
+**Environments:** Gestiona ambientes (staging, production) con URLs y deployment tiers.
 
-# Múltiples servicios
-integration-test:
-  image: node:18
-  services:
-    - postgres:14
-    - redis:7
-  variables:
-    POSTGRES_DB: testdb
-    POSTGRES_USER: testuser
-    POSTGRES_PASSWORD: testpass
-  script:
-    - npm run test:integration
-```
-
-### 5.2. Jobs paralelos
-
-Ejecuta múltiples instancias del mismo job:
-
-```yaml
-test:
-  stage: test
-  parallel: 5
-  script:
-    - npm run test -- --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL
-```
-
-### 5.3. Matrices (matrix jobs)
-
-Ejecuta un job con múltiples combinaciones:
-
-```yaml
-test:
-  stage: test
-  parallel:
-    matrix:
-      - NODE_VERSION: ["16", "18", "20"]
-        OS: ["ubuntu-latest", "alpine"]
-  image: node:$NODE_VERSION-$OS
-  script:
-    - npm test
-```
-
-### 5.4. Jobs manuales
-
-Jobs que requieren intervención manual:
-
-```yaml
-deploy-production:
-  stage: deploy
-  script:
-    - ./deploy.sh
-  when: manual
-  only:
-    - main
-```
-
-### 5.5. Jobs condicionales
-
-```yaml
-deploy:
-  script:
-    - ./deploy.sh
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: manual
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      when: on_success
-    - when: never
-```
-
-### 5.6. Incluir archivos externos
-
-Puedes incluir configuraciones de otros archivos:
-
-```yaml
-include:
-  - local: '/templates/.gitlab-ci-template.yml'
-  - remote: 'https://example.com/ci-template.yml'
-  - template: Security/SAST.gitlab-ci.yml
-```
-
-### 5.7. Templates y extends
-
-Reutiliza configuraciones:
-
-```yaml
-.tests:
-  script:
-    - npm test
-  only:
-    - merge_requests
-
-unit-tests:
-  extends: .tests
-  script:
-    - npm run test:unit
-
-integration-tests:
-  extends: .tests
-  script:
-    - npm run test:integration
-```
-
-### 5.8. Environments
-
-Gestiona diferentes ambientes:
-
-```yaml
-deploy-staging:
-  stage: deploy
-  script:
-    - ./deploy.sh staging
-  environment:
-    name: staging
-    url: https://staging.example.com
-    deployment_tier: testing
-
-deploy-production:
-  stage: deploy
-  script:
-    - ./deploy.sh production
-  environment:
-    name: production
-    url: https://example.com
-    deployment_tier: production
-    on_stop: stop-production
-
-stop-production:
-  stage: deploy
-  script:
-    - ./stop.sh
-  environment:
-    name: production
-    action: stop
-  when: manual
-  only:
-    - main
-```
-
-### 5.9. Secrets y variables protegidas
-
-```yaml
-deploy:
-  script:
-    - echo $SECRET_KEY
-  variables:
-    SECRET_KEY:
-      value: $CI_SECRET_KEY
-      protected: true
-      masked: true
-```
-
-### 5.10. Retry y timeout
-
-```yaml
-test:
-  script:
-    - npm test
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-  timeout: 30m
-```
+**Variables protegidas:** Configura secrets en GitLab UI como "protected" y "masked" para ocultarlos en logs.
 
 ---
 
 ## 6. GitLab CI/CD: prácticas y patrones
 
-### 6.1. Mejores prácticas
-
-**1. Mantén los pipelines rápidos:**
-- Usa cache para dependencias
-- Ejecuta jobs en paralelo cuando sea posible
-- Usa artifacts para compartir resultados
-
-**2. Organiza los stages lógicamente:**
-```yaml
-stages:
-  - validate    # Lint, formato
-  - build       # Compilar
-  - test        # Tests unitarios, integración
-  - security    # Scans de seguridad
-  - deploy      # Despliegue
-```
-
-**3. Usa templates para reutilizar:**
-```yaml
-.node-template:
-  image: node:18
-  before_script:
-    - npm ci
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - node_modules/
-```
-
-**4. Documenta tus pipelines:**
-```yaml
-# Este job valida el formato del código
-lint:
-  stage: validate
-  script:
-    - npm run lint
-```
-
-**5. Maneja errores apropiadamente:**
-```yaml
-deploy:
-  script:
-    - ./deploy.sh || exit 1
-  after_script:
-    - ./cleanup.sh
-  allow_failure: false
-```
-
-### 6.2. Patrones comunes
-
-**Patrón: Build una vez, despliega múltiples veces**
-
-```yaml
-build:
-  stage: build
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-
-deploy-staging:
-  stage: deploy
-  script:
-    - ./deploy.sh staging
-  dependencies:
-    - build
-  only:
-    - develop
-
-deploy-production:
-  stage: deploy
-  script:
-    - ./deploy.sh production
-  dependencies:
-    - build
-  only:
-    - main
-```
-
-**Patrón: Tests en paralelo**
-
-```yaml
-test-unit:
-  stage: test
-  script:
-    - npm run test:unit
-
-test-integration:
-  stage: test
-  script:
-    - npm run test:integration
-
-test-e2e:
-  stage: test
-  script:
-    - npm run test:e2e
-```
-
-**Patrón: Deploy condicional por rama**
-
-```yaml
-deploy:
-  stage: deploy
-  script:
-    - |
-      if [ "$CI_COMMIT_REF_NAME" == "main" ]; then
-        ./deploy.sh production
-      elif [ "$CI_COMMIT_REF_NAME" == "develop" ]; then
-        ./deploy.sh staging
-      else
-        ./deploy.sh preview
-      fi
-```
-
-### 6.3. Optimización de pipelines
-
-**1. Cache inteligente:**
-```yaml
-cache:
-  key:
-    files:
-      - package-lock.json
-  paths:
-    - node_modules/
-```
-
-**2. Jobs paralelos:**
-```yaml
-test:
-  parallel: 4
-  script:
-    - npm run test -- --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL
-```
-
-**3. Early exit:**
-```yaml
-lint:
-  stage: validate
-  script:
-    - npm run lint
-  allow_failure: false
-
-# Si lint falla, no se ejecutan los siguientes stages
-```
-
-### 6.4. Seguridad en CI/CD
-
-**1. No exponer secrets:**
-```yaml
-# ❌ MAL
-deploy:
-  script:
-    - echo "Password: mypassword123"
-
-# ✅ BIEN
-deploy:
-  script:
-    - echo "Password: $DEPLOY_PASSWORD"
-  variables:
-    DEPLOY_PASSWORD:
-      value: $CI_DEPLOY_PASSWORD
-      masked: true
-```
-
-**2. Usa variables protegidas:**
-- Configura variables en GitLab UI
-- Marca como "protected" para que solo se usen en ramas protegidas
-- Marca como "masked" para ocultar en logs
-
-**3. Scans de seguridad:**
-```yaml
-include:
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
-  - template: Security/Container-Scanning.gitlab-ci.yml
-```
-
-### 6.5. Monitoreo y notificaciones
-
-```yaml
-deploy:
-  script:
-    - ./deploy.sh
-  after_script:
-    - |
-      if [ $CI_JOB_STATUS == "success" ]; then
-        curl -X POST $SLACK_WEBHOOK -d "Deploy exitoso"
-      else
-        curl -X POST $SLACK_WEBHOOK -d "Deploy falló"
-      fi
-```
+**Mejores prácticas:**
+- Mantén pipelines rápidos (cache, jobs paralelos)
+- Organiza stages lógicamente: validate → build → test → security → deploy
+- Usa templates para reutilizar configuraciones
+- No expongas secrets (usa variables protegidas y masked)
+- Build una vez, despliega múltiples veces usando artifacts
 
 ---
 
 ## 7. Integración de Git con CI/CD
 
-### 7.1. Estrategias de ramas y CI/CD
-
-**Git Flow con CI/CD:**
-
-```yaml
-stages:
-  - test
-  - build
-  - deploy
-
-# Tests en todas las ramas
-test:
-  stage: test
-  script:
-    - npm test
-  except:
-    - main
-
-# Build en develop y feature branches
-build:
-  stage: build
-  script:
-    - npm run build
-  only:
-    - develop
-    - /^feature\/.*$/
-
-# Deploy automático a staging desde develop
-deploy-staging:
-  stage: deploy
-  script:
-    - ./deploy.sh staging
-  only:
-    - develop
-
-# Deploy manual a production desde main
-deploy-production:
-  stage: deploy
-  script:
-    - ./deploy.sh production
-  only:
-    - main
-  when: manual
-```
-
-### 7.2. Tags y releases
-
-**Pipeline para releases:**
-
-```yaml
-release:
-  stage: deploy
-  script:
-    - echo "Creating release $CI_COMMIT_TAG"
-    - ./create-release.sh $CI_COMMIT_TAG
-  only:
-    - tags
-  when: manual
-
-build-release:
-  stage: build
-  script:
-    - npm run build
-    - tar -czf release-$CI_COMMIT_TAG.tar.gz dist/
-  artifacts:
-    paths:
-      - release-*.tar.gz
-    expire_in: 1 year
-  only:
-    - tags
-```
-
-### 7.3. Merge Requests y CI/CD
-
-**Pipeline para MRs:**
-
-```yaml
-# Solo ejecutar en MRs
-review:
-  stage: test
-  script:
-    - npm run lint
-    - npm test
-    - npm run test:coverage
-  coverage: '/Coverage: \d+\.\d+%/'
-  only:
-    - merge_requests
-
-# Comparar coverage con la rama base
-coverage-diff:
-  stage: test
-  script:
-    - npm run test:coverage
-    - ./compare-coverage.sh
-  only:
-    - merge_requests
-```
-
-### 7.4. Hooks de Git y CI/CD
-
-Puedes combinar hooks locales con CI/CD:
-
-```bash
-#!/bin/bash
-# .git/hooks/pre-push
-
-# Ejecutar tests locales antes de push
-npm test
-
-if [ $? -ne 0 ]; then
-    echo "Tests fallaron. Push abortado."
-    exit 1
-fi
-
-# CI/CD ejecutará tests más completos en el servidor
-echo "Tests locales pasados. CI/CD ejecutará tests completos."
-```
-
-### 7.5. Git bisect con CI/CD
-
-Usa CI/CD para automatizar git bisect:
-
-```yaml
-bisect-test:
-  script:
-    - npm test
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $BISECT_MODE == "true"'
-```
-
-Luego en local:
-```bash
-git bisect start HEAD HEAD~50
-git bisect run git push origin HEAD --force
-```
+**Estrategias comunes:**
+- **Tests en todas las ramas:** Ejecuta tests en feature branches, build en develop, deploy manual en main
+- **Tags y releases:** Los tags disparan pipelines de release automáticamente
+- **Merge Requests:** Pipelines se ejecutan en MRs para validar antes de merge
+- **Hooks locales + CI/CD:** Hooks locales ejecutan tests rápidos, CI/CD ejecuta tests completos
 
 ---
 
@@ -1197,11 +457,396 @@ git bisect run git push origin HEAD --force
 
 ---
 
-## 9. Ejercicios finales de repaso
+## 9. Ejercicios divertidos de Git (nivel junior)
 
-Esta sección contiene ejercicios integradores para repasar todos los conceptos de Git vistos durante el curso.
+### 9.1. El commit del "oops" (10 minutos)
 
-### 9.1. Ejercicio A: El flujo completo (Individual) (30 minutos)
+**Objetivo:** Aprender a corregir mensajes de commit y usar `git commit --amend`.
+
+**Escenario:** Acabas de hacer un commit pero te diste cuenta de que el mensaje tiene un error tipográfico o quieres añadir algo.
+
+**Instrucciones:**
+
+1. Crea un repositorio y haz un commit con un mensaje mal escrito:
+   ```bash
+   mkdir ejercicio-oops
+   cd ejercicio-oops
+   git init
+   echo "Hola mundo" > saludo.txt
+   git add saludo.txt
+   git commit -m "feat: añadir saludo (con typo)"
+   ```
+
+2. Corrige el mensaje del commit usando `git commit --amend`:
+   ```bash
+   git commit --amend -m "feat: añadir saludo"
+   ```
+
+3. Verifica que el mensaje cambió:
+   ```bash
+   git log --oneline
+   ```
+
+4. **Bonus:** Añade un archivo más al commit anterior:
+   ```bash
+   echo "Adiós mundo" > despedida.txt
+   git add despedida.txt
+   git commit --amend --no-edit
+   ```
+
+### 9.2. El detective de commits (15 minutos)
+
+**Objetivo:** Usar `git blame` y `git log` para investigar el historial.
+
+**Escenario:** Encontraste una línea de código extraña y quieres saber quién la escribió y cuándo.
+
+**Instrucciones:**
+
+1. Crea un archivo con varios commits de diferentes "autores":
+   ```bash
+   mkdir ejercicio-detective
+   cd ejercicio-detective
+   git init
+   git config user.name "Alice"
+   git config user.email "alice@example.com"
+   
+   echo "Línea 1" > archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 1"
+   
+   echo "Línea 2" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 2"
+   
+   git config user.name "Bob"
+   git config user.email "bob@example.com"
+   
+   echo "Línea 3 (sospechosa)" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 3"
+   
+   echo "Línea 4" >> archivo.txt
+   git add archivo.txt
+   git commit -m "feat: añadir línea 4"
+   ```
+
+2. Usa `git blame` para ver quién escribió cada línea:
+   ```bash
+   git blame archivo.txt
+   ```
+
+3. Usa `git log` para ver el historial completo:
+   ```bash
+   git log --oneline archivo.txt
+   ```
+
+4. Investiga un commit específico:
+   ```bash
+   git show <commit-hash>
+   ```
+
+### 9.3. El juego de las ramas (15 minutos)
+
+**Objetivo:** Practicar creación, navegación y eliminación de ramas.
+
+**Instrucciones:**
+
+1. Crea un repositorio con varias ramas:
+   ```bash
+   mkdir ejercicio-ramas
+   cd ejercicio-ramas
+   git init
+   echo "main" > archivo.txt
+   git add archivo.txt
+   git commit -m "Init"
+   
+   # Crea 5 ramas diferentes
+   for rama in feature/login feature/logout feature/profile bugfix/crash hotfix/security; do
+     git checkout -b $rama
+     echo "$rama" >> archivo.txt
+     git add archivo.txt
+     git commit -m "feat: añadir $rama"
+   done
+   ```
+
+2. Lista todas las ramas:
+   ```bash
+   git branch -a
+   ```
+
+3. Navega entre ramas y observa cómo cambia el archivo:
+   ```bash
+   git checkout feature/login
+   cat archivo.txt
+   git checkout bugfix/crash
+   cat archivo.txt
+   ```
+
+4. Elimina una rama que ya no necesitas:
+   ```bash
+   git checkout main
+   git branch -d feature/logout
+   ```
+
+5. **Bonus:** Intenta eliminar una rama sin hacer merge primero. ¿Qué pasa?
+
+### 9.4. El stash mágico (10 minutos)
+
+**Objetivo:** Aprender a guardar cambios temporalmente con `git stash`.
+
+**Escenario:** Estás trabajando en algo, pero necesitas cambiar de rama urgentemente sin perder tus cambios.
+
+**Instrucciones:**
+
+1. Crea un repositorio y haz algunos cambios:
+   ```bash
+   mkdir ejercicio-stash
+   cd ejercicio-stash
+   git init
+   echo "Línea 1" > archivo.txt
+   git add archivo.txt
+   git commit -m "Init"
+   
+   # Haz cambios sin commitear
+   echo "Línea 2 (sin commit)" >> archivo.txt
+   echo "Archivo nuevo" > nuevo.txt
+   ```
+
+2. Guarda los cambios en el stash:
+   ```bash
+   git stash push -m "Cambios temporales"
+   ```
+
+3. Verifica que el working directory está limpio:
+   ```bash
+   git status
+   ```
+
+4. Crea una rama urgente y haz un cambio:
+   ```bash
+   git checkout -b hotfix/urgente
+   echo "Fix urgente" > fix.txt
+   git add fix.txt
+   git commit -m "fix: corrección urgente"
+   git checkout main
+   git merge hotfix/urgente
+   ```
+
+5. Recupera tus cambios del stash:
+   ```bash
+   git stash list
+   git stash pop
+   ```
+
+6. Verifica que tus cambios volvieron:
+   ```bash
+   git status
+   cat archivo.txt
+   ```
+
+### 9.5. El historial desordenado (20 minutos)
+
+**Objetivo:** Limpiar un historial desordenado usando `git rebase -i`.
+
+**Escenario:** Tienes un historial con commits como "wip", "fix", "a", "otro fix", etc. y quieres limpiarlo.
+
+**Instrucciones:**
+
+1. Crea un historial desordenado:
+   ```bash
+   mkdir ejercicio-limpieza
+   cd ejercicio-limpieza
+   git init
+   
+   echo "feature 1" > feature1.txt
+   git add feature1.txt
+   git commit -m "wip"
+   
+   echo "feature 2" > feature2.txt
+   git add feature2.txt
+   git commit -m "a"
+   
+   echo "fix" > fix.txt
+   git add fix.txt
+   git commit -m "fix"
+   
+   echo "otro fix" > fix2.txt
+   git add fix2.txt
+   git commit -m "otro fix"
+   
+   echo "wip" > wip.txt
+   git add wip.txt
+   git commit -m "wip"
+   ```
+
+2. Usa `git rebase -i` para limpiar los últimos 5 commits:
+   ```bash
+   git rebase -i HEAD~5
+   ```
+
+3. En el editor, cambia los commits:
+   - Cambia "pick" por "reword" para renombrar mensajes
+   - Cambia "pick" por "squash" o "fixup" para fusionar commits
+   - Reordena commits si es necesario
+
+4. Guarda y cierra. Git te pedirá que reescribas los mensajes.
+
+5. Verifica el historial limpio:
+   ```bash
+   git log --oneline
+   ```
+
+### 9.6. El juego del tag (10 minutos)
+
+**Objetivo:** Aprender a crear, listar y eliminar tags.
+
+**Instrucciones:**
+
+1. Crea un repositorio con algunos commits:
+   ```bash
+   mkdir ejercicio-tags
+   cd ejercicio-tags
+   git init
+   
+   for i in {1..5}; do
+     echo "Versión $i" > version.txt
+     git add version.txt
+     git commit -m "feat: versión $i"
+   done
+   ```
+
+2. Crea tags para diferentes versiones:
+   ```bash
+   git tag v1.0.0 HEAD~4
+   git tag v1.1.0 HEAD~3
+   git tag v1.2.0 HEAD~2
+   git tag v2.0.0 HEAD~1
+   git tag v2.1.0 HEAD
+   ```
+
+3. Lista todos los tags:
+   ```bash
+   git tag
+   git tag -l "v1.*"
+   ```
+
+4. Ve a un tag específico:
+   ```bash
+   git checkout v1.0.0
+   cat version.txt
+   git checkout main
+   ```
+
+5. Crea un tag anotado con mensaje:
+   ```bash
+   git tag -a v3.0.0 -m "Release mayor: versión 3.0.0"
+   ```
+
+6. Ver información de un tag:
+   ```bash
+   git show v3.0.0
+   ```
+
+7. Elimina un tag:
+   ```bash
+   git tag -d v1.0.0
+   ```
+
+### 9.7. El desafío del reflog (15 minutos)
+
+**Objetivo:** Recuperar commits "perdidos" usando `git reflog`.
+
+**Escenario:** Hiciste un `git reset --hard` por error y perdiste commits importantes. ¡No te preocupes, Git los guarda!
+
+**Instrucciones:**
+
+1. Crea un repositorio con varios commits:
+   ```bash
+   mkdir ejercicio-reflog
+   cd ejercicio-reflog
+   git init
+   
+   for i in {1..5}; do
+     echo "Commit importante $i" > commit$i.txt
+     git add commit$i.txt
+     git commit -m "feat: commit importante $i"
+   done
+   ```
+
+2. Verifica el historial:
+   ```bash
+   git log --oneline
+   ```
+
+3. **¡Oh no!** Hiciste un reset por error:
+   ```bash
+   git reset --hard HEAD~3
+   ```
+
+4. Verifica que los commits desaparecieron:
+   ```bash
+   git log --oneline
+   ```
+
+5. Usa `git reflog` para encontrar los commits perdidos:
+   ```bash
+   git reflog
+   ```
+
+6. Recupera los commits usando el hash del reflog:
+   ```bash
+   # Encuentra el hash del commit que quieres recuperar en el reflog
+   git reset --hard <hash-del-reflog>
+   ```
+
+7. Verifica que los commits volvieron:
+   ```bash
+   git log --oneline
+   ```
+
+### 9.8. El juego de los aliases (10 minutos)
+
+**Objetivo:** Crear aliases personalizados para comandos de Git que usas frecuentemente.
+
+**Instrucciones:**
+
+1. Crea algunos aliases útiles:
+   ```bash
+   git config --global alias.st status
+   git config --global alias.co checkout
+   git config --global alias.br branch
+   git config --global alias.ci commit
+   git config --global alias.unstage 'reset HEAD --'
+   git config --global alias.last 'log -1 HEAD'
+   git config --global alias.visual '!gitk'
+   git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+   ```
+
+2. Prueba tus nuevos aliases:
+   ```bash
+   git st
+   git last
+   git lg
+   ```
+
+3. Lista todos tus aliases:
+   ```bash
+   git config --global --get-regexp alias
+   ```
+
+4. **Bonus:** Crea un alias divertido:
+   ```bash
+   git config --global alias.whoops 'reset --hard HEAD~1'
+   git config --global alias.yolo 'push --force'
+   ```
+
+---
+
+## 10. Ejercicios finales de repaso
+
+Esta sección contiene ejercicios integradores para repasar todos los conceptos avanzados de Git vistos durante el curso.
+
+### 10.1. Ejercicio A: El flujo completo (Individual) (30 minutos)
 
 **Objetivo:** Simular el ciclo de vida completo de una funcionalidad, desde la creación hasta el despliegue, usando buenas prácticas de Git.
 
@@ -1243,7 +888,7 @@ Esta sección contiene ejercicios integradores para repasar todos los conceptos 
 - Uso correcto de `--force-with-lease`.
 - Tags creados y subidos correctamente.
 
-### 9.2. Ejercicio B: Depuración y limpieza (Parejas o Individual) (25 minutos)
+### 10.2. Ejercicio B: Depuración y limpieza (Parejas o Individual) (25 minutos)
 
 **Objetivo:** Encontrar un error introducido en el pasado y limpiar un historial desastroso usando git bisect y rebase interactivo.
 
@@ -1302,7 +947,7 @@ Esta sección contiene ejercicios integradores para repasar todos los conceptos 
    - Usa `git log --oneline` para verificar que el historial está limpio.
    - Verifica que el bug esté corregido ejecutando `python3 app.py`.
 
-### 9.3. Ejercicio C: Colaboración y conflictos (En clase / Parejas) (20 minutos)
+### 10.3. Ejercicio C: Colaboración y conflictos (En clase / Parejas) (20 minutos)
 
 **Objetivo:** Resolver un "infierno de dependencias" y conflictos cruzados usando técnicas avanzadas de Git.
 

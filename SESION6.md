@@ -11,9 +11,9 @@
 7. [Integración de Git con CI/CD](#7-integración-de-git-con-cicd) (10 minutos)
 8. [Observación y comprensión de CI/CD en GitLab](#8-observación-y-comprensión-de-cicd-en-gitlab) (30 minutos)
 9. [Ejercicios divertidos de Git (nivel junior)](#9-ejercicios-divertidos-de-git-nivel-junior) (105 minutos)
-10. [Ejercicios finales de repaso](#10-ejercicios-finales-de-repaso) (75 minutos)
+10. [Ejercicios finales de repaso](#10-ejercicios-finales-de-repaso) (90 minutos)
 
-**Duración total estimada: 5 horas**
+**Duración total estimada: 6 horas**
 
 ---
 
@@ -323,7 +323,7 @@ GitLab incluye CI/CD integrado con:
 
 ### 4.1. Archivo `.gitlab-ci.yml`
 
-El archivo `.gitlab-ci.yml` en la raíz del repositorio define el pipeline:
+El archivo `.gitlab-ci.yml` en la raíz del repositorio define el pipeline. A continuación, un ejemplo moderno utilizando `rules` en lugar del obsoleto `only`:
 
 ```yaml
 stages:
@@ -333,71 +333,73 @@ stages:
 
 build-job:
   stage: build
+  image: node:18-alpine
   script:
     - npm install
     - npm run build
   artifacts:
     paths:
       - dist/
+    expire_in: 1 hour
 
 test-job:
   stage: test
+  image: node:18-alpine
   script:
     - npm test
-  dependencies:
-    - build-job
+  needs: ["build-job"]
 
 deploy-job:
   stage: deploy
   script:
     - ./deploy.sh
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
 ```
 
 **Conceptos clave:**
-- **Stages:** Etapas que se ejecutan en orden (build, test, deploy)
-- **Jobs:** Tareas en un stage (se ejecutan en paralelo dentro del mismo stage)
-- **Script:** Comandos a ejecutar
-- **Artifacts:** Archivos generados disponibles para otros jobs
-- **Dependencies:** Jobs de los que depende
-- **Only/except:** Controla cuándo se ejecuta (ramas, tags, MRs)
+- **Stages:** Etapas que se ejecutan en orden (build, test, deploy).
+- **Jobs:** Tareas en un stage (se ejecutan en paralelo dentro del mismo stage).
+- **Script:** Comandos a ejecutar.
+- **Artifacts:** Archivos generados disponibles para otros jobs (ej: binarios compilados).
+- **Needs/Dependencies:** Optimiza la ejecución indicando qué jobs previos son necesarios.
+- **Rules:** Reemplaza a `only/except`. Controla lógicamente cuándo se añade el job al pipeline.
 - **Variables:** `CI_COMMIT_SHA`, `CI_COMMIT_REF_NAME`, `CI_PROJECT_NAME`, etc.
 
 ---
 
 ## 5. GitLab CI/CD: conceptos avanzados
 
-**Imágenes Docker:** Usa `image: node:18` para definir el entorno. Puedes usar `services:` para bases de datos, redis, etc.
+**Imágenes Docker:** Usa `image: node:18` para definir el entorno. Puedes usar `services:` para levantar bases de datos temporales (ej: Postgres, Redis) para los tests.
 
-**Jobs paralelos:** `parallel: 5` ejecuta 5 instancias del mismo job.
+**Jobs paralelos:** `parallel: matrix` permite ejecutar el mismo job con diferentes variables (ej: testear en Node 16, 18 y 20).
 
-**Jobs manuales:** `when: manual` requiere intervención manual.
+**Jobs manuales:** `when: manual` requiere que un humano pulse "play" en la interfaz de GitLab. Útil para despliegues a producción.
 
-**Environments:** Gestiona ambientes (staging, production) con URLs y deployment tiers.
+**Environments:** Gestiona ambientes (staging, production) permitiendo ver el historial de despliegues y hacer rollbacks desde la UI.
 
-**Variables protegidas:** Configura secrets en GitLab UI como "protected" y "masked" para ocultarlos en logs.
+**Variables protegidas:** Configura secrets (API Keys, contraseñas) en GitLab UI (Settings -> CI/CD -> Variables). Márcalas como "Masked" para que no salgan en los logs.
 
 ---
 
 ## 6. GitLab CI/CD: prácticas y patrones
 
 **Mejores prácticas:**
-- Mantén pipelines rápidos (cache, jobs paralelos)
-- Organiza stages lógicamente: validate → build → test → security → deploy
-- Usa templates para reutilizar configuraciones
-- No expongas secrets (usa variables protegidas y masked)
-- Build una vez, despliega múltiples veces usando artifacts
+- **Fail fast:** Ejecuta lo más rápido primero (linting, tests unitarios).
+- **Cache:** Usa `cache` para dependencias (node_modules) y acelerar builds.
+- **Docker-in-Docker (dind):** Necesario si tu pipeline construye imágenes Docker.
+- **Templates:** Usa `include:` para reutilizar configuraciones de otros archivos o repositorios.
+- **Idempotencia:** Asegúrate de que los scripts de deploy se puedan ejecutar múltiples veces sin romper nada.
 
 ---
 
 ## 7. Integración de Git con CI/CD
 
 **Estrategias comunes:**
-- **Tests en todas las ramas:** Ejecuta tests en feature branches, build en develop, deploy manual en main
-- **Tags y releases:** Los tags disparan pipelines de release automáticamente
-- **Merge Requests:** Pipelines se ejecutan en MRs para validar antes de merge
-- **Hooks locales + CI/CD:** Hooks locales ejecutan tests rápidos, CI/CD ejecuta tests completos
+- **Tests en Feature Branches:** El pipeline debe pasar (verde) antes de permitir el Merge.
+- **Pipelines de Merge Request:** Jobs específicos que solo corren cuando existe un MR abierto (ej: DangerJS para revisar estilo).
+- **Git Tags como disparadores:** Crear un tag `v1.0.0` dispara automáticamente el pipeline de despliegue a producción.
+- **Skipping CI:** Si un commit es solo documentación, puedes añadir `[skip ci]` en el mensaje del commit para ahorrar recursos.
 
 ---
 
@@ -410,7 +412,7 @@ deploy-job:
 **Instrucciones:**
 
 1. **Explorar un repositorio con CI/CD:**
-   - Busca en GitLab un repositorio que tenga un archivo `.gitlab-ci.yml` (puedes usar un proyecto de ejemplo o uno proporcionado por el instructor).
+   - Busca en GitLab un repositorio que tenga un archivo `.gitlab-ci.yml`.
    - Abre el archivo `.gitlab-ci.yml` y analiza su estructura.
 
 2. **Observar la ejecución de un pipeline:**
@@ -969,8 +971,8 @@ Esta sección contiene ejercicios integradores para repasar todos los conceptos 
    
    git add config.json
    git commit -m "feat: añadir config.json inicial"
-   git remote add origin <url-del-repo>
-   git push -u origin main
+   # NOTA: Si lo haces solo, simula dos remotos o carpetas, 
+   # o usa git remote add origin <url-del-repo> si tienes compañero
    ```
 
 2. **Desarrollo paralelo:**
@@ -1028,6 +1030,98 @@ Esta sección contiene ejercicios integradores para repasar todos los conceptos 
 - Uso de `--ours` y `--theirs` cuando sea apropiado.
 - Archivo final válido y funcional.
 - Rebase exitoso sin perder cambios importantes.
+
+### 10.4. Ejercicio D: La migración compleja (cherry-pick y revert) (45 minutos)
+
+**Objetivo:** Dominar `cherry-pick` para mover commits entre ramas divergentes y `revert` para deshacer cambios de forma segura en ramas públicas.
+
+**Escenario:**
+Trabajas en un proyecto que tiene una versión "Legacy" (mantenimiento) y una versión "Next" (desarrollo activo).
+1. Un desarrollador hizo commit de una feature nueva en la rama `legacy` por error.
+2. Hay un hotfix crítico en `legacy` que también se necesita en `next`.
+3. Se hizo un merge en `main` que rompió producción y hay que deshacerlo sin borrar el historial.
+
+**Instrucciones:**
+
+1. **Preparación del entorno:**
+   Ejecuta este script para crear el escenario:
+   ```bash
+   mkdir ejercicio-migracion
+   cd ejercicio-migracion
+   git init
+   
+   # Crear base
+   echo "Core v1" > core.txt
+   git add core.txt
+   git commit -m "init: core v1"
+   
+   # Crear rama legacy y avanzar
+   git checkout -b legacy
+   echo "Bug critico" > bug.txt
+   git add bug.txt
+   git commit -m "fix: bug critico seguridad"
+   
+   # SIMULACIÓN ERROR: Feature nueva en rama incorrecta
+   echo "Feature Nueva" > feature.txt
+   git add feature.txt
+   git commit -m "feat: login social (equivocado de rama)"
+   
+   # Volver a main (next) y avanzar
+   git checkout main
+   echo "Core v2" > core.txt
+   git commit -am "feat: core v2 upgrade"
+   ```
+
+2. **Misión 1: Mover la feature a la rama correcta:**
+   - Estás en `main`. Necesitas la "Feature Nueva" que está en `legacy`, pero NO quieres el "Bug critico" ni mezclar el historial de legacy.
+   - Busca el hash del commit "feat: login social" usando `git log legacy`.
+   - Usa `cherry-pick` para traer solo ese commit:
+     ```bash
+     git cherry-pick <hash-del-commit-feature>
+     ```
+   - Verifica que ahora tienes el archivo `feature.txt` en main.
+
+3. **Misión 2: Limpiar la rama legacy:**
+   - Ahora debes quitar esa feature de `legacy` porque no es compatible.
+   - Ve a legacy: `git checkout legacy`.
+   - Como `legacy` es una rama compartida, NO debes usar reset. Usa `revert` para crear un "anti-commit".
+   - `git revert <hash-del-commit-feature>`
+   - Verifica que `feature.txt` ha desaparecido (o su contenido eliminado) pero el historial muestra el revert.
+
+4. **Misión 3: Aplicar el hotfix en Main:**
+   - El "fix: bug critico seguridad" de `legacy` también afecta a la v2.
+   - Busca el hash de ese commit.
+   - Estando en `main`, tráelo:
+     ```bash
+     git checkout main
+     git cherry-pick <hash-del-commit-bug>
+     ```
+   - Si hay conflicto (porque core.txt cambió), resuélvelo aceptando los cambios de ambas partes si es necesario, o adaptando el fix a la v2.
+
+5. **Misión 4: El pánico del Merge (Revert de un Merge):**
+   - Simula un merge desastroso. Crea una rama `dev-inestable`:
+     ```bash
+     git checkout -b dev-inestable
+     echo "CODIGO ROTO" >> core.txt
+     git commit -am "feat: cambio experimental inestable"
+     ```
+   - Vuelve a main y haz merge (sin fast-forward para que haya commit de merge):
+     ```bash
+     git checkout main
+     git merge --no-ff dev-inestable
+     ```
+   - ¡Alerta! Producción caída. Debes deshacer ese merge.
+   - Intenta hacer `git revert HEAD`. Git se quejará porque es un merge commit.
+   - Debes especificar a qué "padre" volver (normalmente -m 1 es volver a lo que había en main antes del merge):
+     ```bash
+     git revert -m 1 HEAD
+     ```
+   - Verifica que "CODIGO ROTO" desapareció de `core.txt`.
+
+**Conceptos clave:**
+- **Cherry-pick:** Cirugía de precisión para copiar commits.
+- **Revert:** La forma ética de deshacer cambios en ramas públicas.
+- **Revertir Merges:** Requiere especificar la línea base (`-m 1`).
 
 ---
 
